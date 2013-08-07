@@ -1,0 +1,72 @@
+[{
+    "time":0,
+    "text":"Ik ga een stukje fietsen door Amsterdam. Omdat het fietspad hier vrij ligt van de rijbaan, adem je minder ultrafijnstof in!",
+    "face":"blij"
+},
+{
+    "time":125,
+    "text":"Bah! Scooters zijn vies. Sommige scooters stoten meer ultrafijn stof uit dan vrachtwagens.",
+    "face":"vies"
+},
+{
+    "time":135,
+    "text":"Bestelbusjes rijden vaak op diesel. Daardoor komt veel roet vrij en dat is heel ongezond."
+},
+{
+    "time":155,
+    "text":"Help! Deze vrachtwagen stoot wel heel veel ultrafijnstof uit. Neus dicht!",
+    "face":"verschrikt"
+},
+{
+    "time":265,
+    "text":"Hier kan ik weer opgelucht adem halen: er komt niet veel verkeer langs!",
+    "face":"blij"
+},
+{
+    "time":420,
+    "text":"Ai, daar komt weer een vies busje voorbij",
+    "face":"sip"
+},
+{
+    "time":435,
+    "text":"en weer zo'n scooter!",
+    "face":"vies"
+},
+{
+    "time":450,
+    "text":"er zit hier veel ultrafijnstof in de lucht. Die deeltjes zijn zo klein dat ze direct via je longen in je bloedbaan kunnen komen.",
+    "face":"sip"
+},
+{
+    "time":470,
+    "text":"hier fiets ik gelukkig weer wat verder van de weg. Voor ultrafijnstof maakt dat veel uit!",
+    "face":"blij"
+},
+{
+    "time":495,
+    "text":"Neus dicht!",
+    "face":"vies"
+},
+{
+    "time":625,
+    "text":"Geen idee waar deze piek in de grafiek vandaan komt!",
+    "face":"verschrikt"
+},
+{
+    "time":650,
+    "text":"Dat rook ook niet fris",
+    "face":"vies"
+},
+{
+    "time":725,
+    "text":"Bah!",
+    "face":"verschrikt"
+},
+{
+    "time":735,
+    "text":"Nog steeds hoge concentraties hier. Hoe zou dat komen?"
+},
+{
+    "time":765,
+    "text":"Hier geen verkeer, maar de bouwwerkzaamheden zorgen ook voor ultrafijnstof in de lucht."
+}]
