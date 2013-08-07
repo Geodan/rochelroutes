@@ -1,0 +1,144 @@
+/* Layout */
+body {
+	max-width: 1500px;
+	margin: 0 auto;
+}
+#header {
+	float: left;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	list-style-type: none;
+}
+#header li {
+	display:inline;
+}
+#header a {
+	float:left;
+	padding: .5em;
+}
+#container {
+	margin: 1em;
+}
+/* http://alistapart.com/article/holygrail */
+		body {
+			min-width: 780px;         /* 2 x (LC fullwidth + CC padding) + RC fullwidth */
+		}
+
+		#container {
+			width: auto;
+			padding-left: 520px;      /* LC fullwidth */
+			padding-right: 20px;     /* RC fullwidth + CC padding */
+		}
+		
+		#container .column {
+			position: relative;
+			float: left;
+		}
+		
+		#center {
+			padding: 10px;       /* CC padding */
+			width: 100%;
+		}
+		
+		#left {
+			width: 500px;             /* LC width */
+			padding: 10px;          /* LC padding */
+			right: 540px;             /* LC fullwidth + CC padding */
+			margin-left: -100%;
+		}
+		
+		#right {
+			width: 0;             /* RC width */
+			padding: 0;          /* RC padding */
+			margin-right: -100%;
+		}
+		
+		#footer {
+			clear: both;
+		}
+		
+		/*** IE Fix ***/
+		* html #left {
+			left: 150px;              /* RC fullwidth */
+		}
+
+		/*** Equal-height Columns ***/
+
+		
+		#container {
+			overflow: hidden;
+		}
+
+		#container .column {
+			padding-bottom: 1001em;     /* X + padding-bottom */
+			margin-bottom: -1000em;     /* X */
+		}
+
+		
+		/*
+		/*** Footer Fix ***
+
+		* html body {
+			overflow: hidden;
+		}
+		
+		* html #footer-wrapper {
+			float: left;
+			position: relative;
+			width: 100%;
+			padding-bottom: 10010px;
+			margin-bottom: -10000px;
+			background: #FFF;         /*** Same as body background ***
+		}
+
+		*/
+/* Opmaak */
+body { font: 14px/15px Verdana,Helvetica,sans-serif; }
+
+#header {
+	background-color:#E6E6E6;
+}
+#header a {
+	color: #666666;
+	text-decoration:none;
+	text-transform: uppercase;
+	font-weight: bold;
+	
+	border-right:1px solid #CCCCCC;
+}
+#header a:hover {
+	background-color:#4B4;
+	color: #FFFFFF;
+}
+
+.kolom {
+	border: 1px solid #ccc;
+}
+
+.paddingborder {
+	padding: 10px;
+	background-color: #EEEEEE;
+	border: 1px solid #CCCCCC;
+	border-radius: 5px;
+}
+#kaart {
+	width: 480px;
+	height: 480px;
+}
+video {
+	width: 100%;
+	height: 500px;
+}
+
+#verhaal {
+	width: 100%;
+	background: purple;
+	border: 1px solid #888888;
+	border-radius: 5px;
+}
+#verhaal #tekst {
+	padding: .75em;
+	color: #fff;
+	text-size: 15px;
+}

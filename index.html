@@ -1,13 +1,71 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>TODO</title>
-  </head>
-  
-  <body>
-  
-  
+<html><head>
+	<title>TODO</title>
+	<meta http-equiv="content-type" content="text/html; charset=UTF8">
+	<link rel="stylesheet" type="text/css" href="main.css">
+<!--
+	<link rel="stylesheet" href="src/leaflet/leaflet.css" />
+<script src="src/leaflet/leaflet.js"></script>
+-->
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
+ <!--[if lte IE 8]>
+     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
+ <![endif]-->
+	<script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+
+	<script src="http://d3js.org/d3.v3.js"></script>
+	
+</head><body>
+		<ul id="header">
+			<li><a id="routenaam">Route van X</a></li>
+			<li><a>&#9654; Afspelen</a></li>
+			<li><a>Sneller afspelen</a></li>
+			<li><a>Bekijk ook andere routes</a></li>
+		</ul>
+	<div id="grafiek">
+		&nbsp;
+	</div>
+	<div id="container">
+		<div id="center" class="column">
+		<div class="paddingborder">
+				<video controls>
+				<source src="movie.mp4" type="video/mp4">
+				<source src="movie.ogg" type="video/ogg">
+			</video>
+		</div>
+		</div>
+		<div id="left" class="column">
+		<div class="paddingborder">
+			<div id="kaart"></div>
+			<script>
+			var map = L.map('kaart').setView([52.2, 5], 7);
+			// add an OpenStreetMap tile layer
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(
+					function showPosition(position) {
+						map.setView([position.coords.latitude,position.coords.longitude], 15);
+					});
+			} else{
+				x.innerHTML="Geolocation is not supported by this browser.";
+			}
+			
+			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+			}).addTo(map);
+			</script>
+		</div>
+		</div>
+		
+		<div id="right" class="column"></div>
+	</div>
+	<div id="verhaal">
+		<p id="tekst">
+			Bestelbusjes rijden vaak op Diesel. Daardiir komt veel roet vrij en dat is heel ongezond.
+		</p>
+	</div>
+	<div>
+		..
+	</div>
   
   </body>
-
 </html>
