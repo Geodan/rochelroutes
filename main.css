@@ -22,7 +22,7 @@ body {
 }
 /* http://alistapart.com/article/holygrail */
 		body {
-			min-width: 780px;         /* 2 x (LC fullwidth + CC padding) + RC fullwidth */
+			min-width: 1150px;         /* 2 x (LC fullwidth + CC padding) + RC fullwidth */
 		}
 
 		#container {
@@ -31,17 +31,17 @@ body {
 			padding-right: 20px;     /* RC fullwidth + CC padding */
 		}
 		
-		#container .column {
+		#container .blok {
 			position: relative;
 			float: left;
 		}
 		
-		#center {
+		#video {
 			padding: 10px;       /* CC padding */
 			width: 100%;
 		}
 		
-		#left {
+		#kaart {
 			width: 500px;             /* LC width */
 			padding: 10px;          /* LC padding */
 			right: 540px;             /* LC fullwidth + CC padding */
@@ -59,7 +59,7 @@ body {
 		}
 		
 		/*** IE Fix ***/
-		* html #left {
+		* html #kaart {
 			left: 150px;              /* RC fullwidth */
 		}
 
@@ -70,7 +70,7 @@ body {
 			overflow: hidden;
 		}
 
-		#container .column {
+		#container .blok {
 			padding-bottom: 1001em;     /* X + padding-bottom */
 			margin-bottom: -1000em;     /* X */
 		}
@@ -112,6 +112,12 @@ body { font: 14px/15px Verdana,Helvetica,sans-serif; }
 	color: #FFFFFF;
 }
 
+#grafiek canvas {
+	height: 300px;
+	width: 100%;
+}
+
+
 .kolom {
 	border: 1px solid #ccc;
 }
@@ -122,7 +128,7 @@ body { font: 14px/15px Verdana,Helvetica,sans-serif; }
 	border: 1px solid #CCCCCC;
 	border-radius: 5px;
 }
-#kaart {
+#kaartje {
 	width: 480px;
 	height: 480px;
 }

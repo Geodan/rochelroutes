@@ -2,19 +2,33 @@
 <html><head>
 	<title>TODO</title>
 	<meta http-equiv="content-type" content="text/html; charset=UTF8">
-	<link rel="stylesheet" type="text/css" href="main.css">
-<!--
-	<link rel="stylesheet" href="src/leaflet/leaflet.css" />
-<script src="src/leaflet/leaflet.js"></script>
--->
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	
 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
  <!--[if lte IE 8]>
      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
  <![endif]-->
 	<script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
 
-	<script src="http://d3js.org/d3.v3.js"></script>
+	<link href="src/nvd3/src/nv.d3.css" rel="stylesheet" type="text/css">
+	<script src="src/nvd3/lib/d3.v3.js"></script>
+	<script src="src/nvd3/nv.d3.js"></script>
+	<script src="src/nvd3/src/tooltip.js"></script>
+	<script src="src/nvd3/src/utils.js"></script>
+	<script src="src/nvd3/src/models/legend.js"></script>
+	<script src="src/nvd3/src/models/axis.js"></script>
+	<script src="src/nvd3/src/models/scatter.js"></script>
+	<script src="src/nvd3/src/models/line.js"></script>
+	<script src="src/nvd3/src/models/lineChart.js"></script>
 	
+	<script src="src/main.js"></script>
+	<link rel="stylesheet" type="text/css" href="main.css">	
+		<script>
+$(document).ready(function() {
+	canvasGrafiek();
+});
+		</script>
 </head><body>
 		<ul id="header">
 			<li><a id="routenaam">Route van X</a></li>
@@ -26,19 +40,23 @@
 		&nbsp;
 	</div>
 	<div id="container">
-		<div id="center" class="column">
+		<div id="video" class="blok">
 		<div class="paddingborder">
-				<video controls>
-				<source src="movie.mp4" type="video/mp4">
-				<source src="movie.ogg" type="video/ogg">
+			<video id="videotag" preload="metadata" controls>
+				<source id="videosrc" type="video/webm">
+				<script>
+// andere locatie voor andere route
+setVideoSource();
+attachListeners(document.getElementById("videotag"));
+				</script>
 			</video>
 		</div>
 		</div>
-		<div id="left" class="column">
+		<div id="kaart" class="blok">
 		<div class="paddingborder">
-			<div id="kaart"></div>
+			<div id="kaartje"></div>
 			<script>
-			var map = L.map('kaart').setView([52.2, 5], 7);
+			var map = L.map('kaartje').setView([52.2, 5], 7);
 			// add an OpenStreetMap tile layer
 			if (navigator.geolocation) {
 				navigator.geolocation.getCurrentPosition(
@@ -60,7 +78,7 @@
 	</div>
 	<div id="verhaal">
 		<p id="tekst">
-			Bestelbusjes rijden vaak op Diesel. Daardiir komt veel roet vrij en dat is heel ongezond.
+			Bestelbusjes rijden vaak op Diesel. Daardoor komt veel roet vrij en dat is heel ongezond.
 		</p>
 	</div>
 	<div>
