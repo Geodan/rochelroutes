@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html><head>
-	<title>TODO</title>
+	<title>Rochelroutes</title>
 	<meta http-equiv="content-type" content="text/html; charset=UTF8">
 
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
@@ -24,30 +24,24 @@
 	
 	<script src="src/main.js"></script>
 	<link rel="stylesheet" type="text/css" href="main.css">	
-		<script>
-$(document).ready(function() {
-	canvasGrafiek();
-});
-		</script>
 </head><body>
 		<ul id="header">
 			<li><a id="routenaam">Route van X</a></li>
-			<li><a>&#9654; Afspelen</a></li>
-			<li><a>Sneller afspelen</a></li>
-			<li><a>Bekijk ook andere routes</a></li>
+			<li><a id="playknop">&#9654; Afspelen</a></li>
+			<li><a id="snellerknop">Sneller afspelen</a></li>
+			<li><a id="routemenuitem">Bekijk ook andere routes &#x25BC;</a></li>
 		</ul>
 	<div id="grafiek">
-		&nbsp;
+		<canvas id="canvas"></canvas>
 	</div>
 	<div id="container">
 		<div id="video" class="blok">
 		<div class="paddingborder">
-			<video id="videotag" preload="metadata" controls>
-				<source id="videosrc" type="video/webm">
+			<video id="videotag" preload="metadata" controls ontimeupdate="videoSkipped(this);" onplaying="videoSpeeltaf(this);" onpause="videoPauseert(this);">
+				<source id="videosrc" src="data/amsterdam-1/movie.webm" type="video/webm">
 				<script>
 // andere locatie voor andere route
-setVideoSource();
-attachListeners(document.getElementById("videotag"));
+//setVideoSource();
 				</script>
 			</video>
 		</div>
@@ -56,17 +50,15 @@ attachListeners(document.getElementById("videotag"));
 		<div class="paddingborder">
 			<div id="kaartje"></div>
 			<script>
+
 			var map = L.map('kaartje').setView([52.2, 5], 7);
 			// add an OpenStreetMap tile layer
-			if (navigator.geolocation) {
+			if (false && navigator.geolocation) {
 				navigator.geolocation.getCurrentPosition(
 					function showPosition(position) {
 						map.setView([position.coords.latitude,position.coords.longitude], 15);
 					});
-			} else{
-				x.innerHTML="Geolocation is not supported by this browser.";
 			}
-			
 			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
 			}).addTo(map);
@@ -74,7 +66,7 @@ attachListeners(document.getElementById("videotag"));
 		</div>
 		</div>
 		
-		<div id="right" class="column"></div>
+		<!-- <div id="right" class="column"></div> -->
 	</div>
 	<div id="verhaal">
 		<p id="tekst">

@@ -1,49 +1,43 @@
-var dataURL = "data/amsterdam-1/";
-
-var data;
-var huidigeTijd = 0;
-
-function update() {
-	if ((huidigeTijd ++) >= getMaxX(data)) {
-		huidigeTijd = 0;
-		clearInterval(updateInterval);
+var routes = {
+	"amsterdam-1": {
+		"titel": "Oscar's route van Amsterdam",
+		"pad": "data/amsterdam-1/"
 	}
-	draw();
-}
+};
+var route, data, huidigeTijd = 0;
 
-updateInterval = setInterval(function() { update(); }, 100);
-
-
-
-function ajax() {
-	if (window.XMLHttpRequest) {
-		return new XMLHttpRequest();
-	} else {// IE6, IE5
-		return new ActiveXObject("Microsoft.XMLHTTP");
+setRoute("amsterdam-1");
+function setRoute(routeNaam) {
+	route = routeNaam;
+	dataURL = routes[routeNaam].pad;
+	var routenaam = $("#routenaam");
+	if (routenaam.length == 0) {
+		$(function() {
+			var routenaam = $("#routenaam");
+			routenaam.html(routes[routeNaam].titel);
+		});
+	} else {
+		routenaam.html(routes[routeNaam].titel);
 	}
 }
+
+$(document).ready(function() {
+	canvasGrafiek();
+	// listeners?
+});
 
 function setVideoSource() {
-	var videoURL = dataURL + "movie.webm";
-	document.getElementById('videosrc').setAttribute("src", videoURL);
+	$("#videosrc").attr("src", dataURL + "movie.webm");
 }
 
 function loadData(callback) {
-	var meetresultaten = dataURL + "meetresultaten.json";
-	var data;
-	var ajaxHttp = ajax();
-	ajaxHttp.onreadystatechange = function() {
-		if (ajaxHttp.readyState == 4 && ajaxHttp.status == 200) {
-			var response = ajaxHttp.responseText;
-			var data = grafiekGegevens(response);
-			callback(data);
-		}
-	};
-	ajaxHttp.open("GET", meetresultaten, true);
-	ajaxHttp.send();
+	$.getJSON(dataURL + "meetresultaten.json").done(function(d) {
+		callback(d);
+	});
 }
 
 // gegevens voor de grafiek
+/*
 function grafiekGegevens(json) {
 	json = JSON.parse(json);
 	var gegevens = [];
@@ -51,27 +45,56 @@ function grafiekGegevens(json) {
 		gegevens[i] = {x: json[i]['time'], y: json[i]['value'] };
 	}
 	return gegevens;
-}
+}*/
 
-function videoSpeeltaf() {
+function videoSpeeltaf(videotag) {
 	console.log("play");
 }
 
-function videoPauseert() {
+function videoPauseert(videotag) {
 	console.log("pause");
 }
 // als de gebruiker naar een ander tijdstip springt in de video
-function videoSkipped() {
-	console.log("skip");
+function videoSkipped(videotag) {
+	setHuidigeTijd(videotag.currentTime, "video");
 }
 
-function attachListeners(videotag) {
-	videotag.onplaying = videoSpeeltaf;
-	videotag.onpause = videoPauseert;
-	videotag.ontimeupdate = videoSkipped;
+function grafiekGeklikt(event) {
+	var graph = $("#canvas");
+	var offset = graph.offset();
+	var x = offset ? event.clientX - offset.left : event.clientX;
+	
+	var c = graph.get(0).getContext("2d");
+	
+	// voor de y-asbeschrijving
+	c.font = 'italic 9pt Arial';
+	c.textAlign = 'right';
+	c.textBaseline = 'middle';
+	
+	var paddingLeft = c.measureText("40000").width + 5;
+	var paddingX = 15;
+	var w = graph.width() - 2 * paddingX - paddingLeft;
+	console.log(w);
+	var xInGraph = x - paddingX - paddingLeft;
+	if (xInGraph < 0) {
+		xInGraph = 0;
+	} else if (xInGraph > w) {
+		xInGraph = w;
+	}
+	setHuidigeTijd(getXValue(w, xInGraph, getMinX(data), getMaxX(data)), "grafiek");
 }
 
+function setHuidigeTijd(tijd, ignore) {
+	huidigeTijd = tijd;
+	//if (ignore !== "grafiek") {
+		draw();
+	//}
+	if (ignore !== "video") {
+		$("#videotag").get(0).currentTime = huidigeTijd;
+	}
+}
 
+/*
 function svgGrafiek() {
 
 // laad de gegevens via ajax, als dat gedaan is wordt de functie aangeroepen
@@ -103,68 +126,29 @@ loadData(function(data) {
 });
 
 }
+*/
+
+$(window).resize(function (e) {
+	draw();
+});
 
 function canvasGrafiek() {
-
-graph = document.createElement("canvas");
-graph.innerHTML = '&nbsp;';
-document.getElementById("grafiek").appendChild(graph);
-
-//loadData(function (d) {
-//	data = d;
-//}
-data = [
-/*	{"x": 0, "y": 10000},
-	{"x": 5, "y": 20000},
-	{"x": 10, "y": 40000},
-	{"x": 15, "y": 5000},
-*/
-{"x":0,"y":15859},
-{"x":5,"y":20717},
-{"x":10,"y":16176},
-{"x":15,"y":12939},
-{"x":20,"y":11530},
-{"x":25,"y":13006},
-{"x":30,"y":14334},
-{"x":35,"y":13324},
-{"x":40,"y":16772},
-{"x":45,"y":16619},
-{"x":50,"y":10962},
-{"x":55,"y":14319},
-{"x":60,"y":15988},
-{"x":65,"y":14204},
-{"x":70,"y":14545},
-{"x":75,"y":15647},
-{"x":80,"y":15084},
-{"x":85,"y":14291},
-{"x":90,"y":13824},
-{"x":95,"y":12314},
-{"x":100,"y":12362},
-{"x":105,"y":12434},
-{"x":110,"y":12583},
-{"x":115,"y":11924},
-{"x":120,"y":13430},
-{"x":125,"y":23247},
-{"x":130,"y":18403},
-{"x":135,"y":29904},
-{"x":140,"y":26936},
-{"x":145,"y":18874},
-{"x":150,"y":17253},
-{"x":155,"y":79216},
-{"x":160,"y":184584},
-{"x":165,"y":66522}
-];
-
-	draw();
-//});
-
+	var graph = $("#grafiek canvas");
+	//graph.html("&nbsp;");
+	graph.click(grafiekGeklikt);
+	$.getJSON(dataURL + "meetresultaten.json").done(function(d) {
+		data = d;
+		draw();
+	});
 }
+
+// grafiek hulpmethodes
 
 function getMinX(data) {
 	var min = false;
 	for (var i = 0; i < data.length; i++) {
-		if (min === false || data[i].x < min) {
-			min = data[i].x;
+		if (min === false || data[i].time < min) {
+			min = data[i].time;
 		}
 	}
 	return min;
@@ -172,62 +156,63 @@ function getMinX(data) {
 function getMaxX(data) {
 	var max = false;
 	for (var i = 0; i < data.length; i++) {
-		if (max === false || data[i].x > max) {
-			max = data[i].x;
+		if (max === false || data[i].time > max) {
+			max = data[i].time;
 		}
 	}
 	return max;
 }
-/*
-function getMaxY(data) {
-    var max = 0;
-    for(var i = 0; i < data.length; i ++) {
-        if (data[i].y > max) {
-            max = data[i].y;
-        }
-    }
-    max += 10 - max % 10;
-    return max;
-}
-*/
 function getXPixel(w, value, min, max) {
     return w * (value - min) / (max - min);
+}
+
+function getXValue(w, pixel, min, max) {
+	// pixel = w * (value - min) / (max - min)
+	// value = pixel * (max - min) / w + min
+	return pixel * (max - min) / w + min;
 }
  
 function getYPixel(h, value, max) {
     return h - (h * value / max);
 }
 
-var graph;
+//var lastHuidigeTijd = -1, lastWidth, lastHeight;
 
 function draw() {
-	graph.width = $("#grafiek").width();
-	graph.height = $("#grafiek").height();
-	var paddingLeft = 20, paddingBottom = 0;
+	var graph = $("#canvas"), grafiek = $("#grafiek");
+	var graphElem = graph.get(0);
+	
+	graphElem.width = grafiek.width();
+	graphElem.height = grafiek.height();
+	
+	/*if (graphElem.width == lastWidth && graphElem.height == lastHeight && huidigeTijd == lastHuidigeTijd) {
+		return;
+	}
+	*/
+	var maxY = 40000;
+	var paddingBottom = 0;
 	var paddingX = 15, paddingY = paddingX;
-	var w = graph.width - 2 * paddingX, h = graph.height - 2 * paddingY;
+	var w = graph.width() - 2 * paddingX, h = graph.height() - 2 * paddingY;
 	
 	var maxHeight = 40000;
 	
-	var c = graph.getContext("2d");
+	var c = graphElem.getContext("2d");
 	
 	// voor de y-asbeschrijving
-	c.font = 'italic 9pt Verdana';
+	c.font = 'italic 9pt Arial';
 	c.textAlign = 'right';
 	c.textBaseline = 'middle';
 	
+	var paddingLeft = c.measureText(maxY.toString()).width + 5;
 	
-	c.fillStyle="#eeeeee";
-	c.fillRect(0,0,graph.width,graph.height);
+	
+	c.fillStyle="#f8f8f8";
+	c.fillRect(0, 0, graph.width(), graph.height());
 	c.translate(paddingX, paddingY);
 	
 	
 	if (data && data.length) {
 		var minX = getMinX(data), maxX = getMaxX(data);
-		var maxY = 40000;
-		
-		paddingLeft = c.measureText(maxY.toString()).width + 5;
-		
 		// strepen
 		c.strokeStyle = 'rgba(150,150,150, 0.5)';
 		// verticale
@@ -240,7 +225,7 @@ function draw() {
 			c.stroke();
 		}
 		// horizontale
-		aantalStrepen = maxY / 5000;
+		aantalStrepen = maxY / 10000;
 		for (var i = 0; i < aantalStrepen; i++) {
 			var y = (h - paddingBottom) * i / aantalStrepen;
 			c.beginPath();
@@ -260,9 +245,9 @@ function draw() {
 		
 		// lijnen
 		c.beginPath();
-		c.moveTo(paddingLeft + getXPixel(w - paddingLeft, data[0].x, minX, maxX), getYPixel(h - paddingBottom, data[0].y, maxY));
+		c.moveTo(paddingLeft + getXPixel(w - paddingLeft, data[0].time, minX, maxX), getYPixel(h - paddingBottom, data[0].value, maxY));
 		for(var i = 1; i < data.length; i ++) {
-			c.lineTo(paddingLeft + getXPixel(w - paddingLeft, data[i].x, minX, maxX), getYPixel(h - paddingBottom, data[i].y, maxY));
+			c.lineTo(paddingLeft + getXPixel(w - paddingLeft, data[i].time, minX, maxX), getYPixel(h - paddingBottom, data[i].value, maxY));
 		}
 		c.lineTo(w, h - paddingBottom);
 		c.lineTo(paddingLeft, h - paddingBottom);
@@ -300,8 +285,12 @@ function draw() {
 		c.strokeStyle = "#0044ff";
 		var x = paddingLeft + getXPixel(w - paddingLeft, huidigeTijd, minX, maxX);
 		c.beginPath();
-		c.moveTo(x, -paddingY);
-		c.lineTo(x, h + paddingY);
+		c.moveTo(x, 0);
+		c.lineTo(x, h);
 		c.stroke();
 	}
+	
+	/*lastHuidigeTijd = huidigeTijd;
+	lastWidth = graphElem.width;
+	lastHeight = graphElem.height;*/
 }
