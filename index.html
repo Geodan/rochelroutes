@@ -2,28 +2,17 @@
 <html><head>
 	<title>Rochelroutes</title>
 	<meta http-equiv="content-type" content="text/html; charset=UTF8">
-
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	
 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css" />
  <!--[if lte IE 8]>
      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.ie.css" />
  <![endif]-->
-	<script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
-
-	<link href="src/nvd3/src/nv.d3.css" rel="stylesheet" type="text/css">
-	<script src="src/nvd3/lib/d3.v3.js"></script>
-	<script src="src/nvd3/nv.d3.js"></script>
-	<script src="src/nvd3/src/tooltip.js"></script>
-	<script src="src/nvd3/src/utils.js"></script>
-	<script src="src/nvd3/src/models/legend.js"></script>
-	<script src="src/nvd3/src/models/axis.js"></script>
-	<script src="src/nvd3/src/models/scatter.js"></script>
-	<script src="src/nvd3/src/models/line.js"></script>
-	<script src="src/nvd3/src/models/lineChart.js"></script>
-	
-	<script src="src/main.js"></script>
+ 
 	<link rel="stylesheet" type="text/css" href="main.css">	
+ 
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+	<script src="src/gpx.js"></script>
+	<script src="src/main.js"></script>
 </head><body>
 		<ul id="header">
 			<li><a id="routenaam">Route van X</a></li>
@@ -36,29 +25,17 @@
 	</div>
 	<div id="container">
 		<div id="video" class="blok">
-		<div class="paddingborder">
-			<video id="videotag" preload="metadata" ontimeupdate="videoSkipped(this);" onplaying="videoSpeeltaf(this);" onpause="videoPauseert(this);">
-				<source id="videosrc" src="data/amsterdam-1/movie.webm" type="video/webm">
-			</video>
-		</div>
+			<div class="paddingborder">
+				<video id="videotag" preload="metadata" ontimeupdate="videoSkipped(this);" onplaying="videoSpeeltaf(this);" onpause="videoPauseert(this);">
+					<source id="videosrc" src="data/amsterdam-1/movie.webm" type="video/webm">
+				</video>
+			</div>
 		</div>
 		<div id="kaart" class="blok">
-		<div class="paddingborder">
-			<div id="kaartje"></div>
-			<script>
-var map = L.map('kaartje').setView([52.15, 5.30], 7);
-// add an OpenStreetMap tile layer
-if (false && navigator.geolocation) {
-	navigator.geolocation.getCurrentPosition(
-		function showPosition(position) {
-			map.setView([position.coords.latitude,position.coords.longitude], 15);
-		});
-}
-L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-	attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
-			</script>
-		</div>
+			<div class="paddingborder">
+				<div id="kaartje">
+				</div>
+			</div>
 		</div>
 		
 		<!-- <div id="right" class="column"></div> -->
@@ -68,8 +45,8 @@ L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
 			Bestelbusjes rijden vaak op Diesel. Daardoor komt veel roet vrij en dat is heel ongezond.
 		</p>
 	</div>
-	<div>
-		..
+	<div id="oproep">
+		<span>Maak hier jouw oproep aan je gemeente</span>
 	</div>
   
   </body>

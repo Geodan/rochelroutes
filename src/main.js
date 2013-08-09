@@ -24,7 +24,24 @@ function setRoute(routeNaam) {
 $(document).ready(function() {
 	canvasGrafiek();
 	$("#knop-play-pause").click(togglePlay);
+	$("#videotag").click(togglePlay);
 	$("#knop-snelheid").click(toggleSpeed);
+	
+	var map = L.map('kaartje').setView([52.15, 5.30], 7);
+	// add an OpenStreetMap tile layer
+	if (false && navigator.geolocation) {
+		navigator.geolocation.getCurrentPosition(function(pos) {
+				map.setView([pos.coords.latitude, pos.coords.longitude], 15);
+		});
+	}
+	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+		attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
+	}).addTo(map);
+	
+	var gpx = dataURL + "track.gpx"; // URL to your GPX file or the GPX itself
+	new L.GPX(gpx, {async: true}).on('loaded', function(e) {
+		map.fitBounds(e.target.getBounds());
+	}).addTo(map);
 });
 
 function setVideoSource() {
@@ -119,40 +136,6 @@ function setHuidigeTijd(tijd, ignore) {
 		$("#videotag").get(0).currentTime = huidigeTijd;
 	}
 }
-
-/*
-function svgGrafiek() {
-
-// laad de gegevens via ajax, als dat gedaan is wordt de functie aangeroepen
-loadData(function(data) {
-	data = [
-		{
-			area: true,
-			values: data,
-			key: "ultrafijnstof",
-			color: "#ff7f0e"
-		}
-	];
-
-	nv.addGraph(function() {
-		var chart = nv.models.lineChart();
-		chart.x(function(d,i) { return i });
-		chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
-			.tickFormat(d3.format('d'));
-		chart.yAxis
-			.axisLabel('Ultrafijnstof (particles/cm^3)')
-			.tickFormat(d3.format(',r'));
-		chart.showYAxis(true);
-		var svg = d3.select("#grafiek").append("svg");
-		svg.datum(data)
-			.transition().duration(100)
-			.call(chart);
-		return chart;
-	});
-});
-
-}
-*/
 
 $(window).resize(function (e) {
 	draw();

@@ -27,7 +27,7 @@ LC = linkerkolom, CC = middelste kolom, RC = rechterkolom
 fullwidth = width + padding
 */
 #container {
-	min-width: 800px;
+	min-width: 600px;
 	width: auto;
 	padding-left: 400px;
 }
@@ -122,11 +122,23 @@ video {
 #verhaal {
 	width: 100%;
 	background: purple;
-	border: 1px solid #888888;
-	border-radius: 5px;
+	border-radius: 3px;
 }
 #verhaal #tekst {
 	padding: .75em;
 	color: #fff;
 	text-size: 15px;
 }
+#oproep {
+	margin: 0 auto;
+}
+#oproep span {
+	text-align: center;
+	background-color: #13a550;
+	background: linear-gradient(to bottom, rgba(19,165,80,0.75), #13a550);
+	display: block;
+	padding: 1em 3em;
+}
+
+
+
