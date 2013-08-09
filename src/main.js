@@ -4,7 +4,7 @@ var routes = {
 		"pad": "data/amsterdam-1/"
 	}
 };
-var route, data, huidigeTijd = 0;
+var route, data, huidigeTijd = 0, playbackRate = 1;
 
 setRoute("amsterdam-1");
 function setRoute(routeNaam) {
@@ -23,40 +23,66 @@ function setRoute(routeNaam) {
 
 $(document).ready(function() {
 	canvasGrafiek();
-	// listeners?
+	$("#knop-play-pause").click(togglePlay);
+	$("#knop-snelheid").click(toggleSpeed);
 });
 
 function setVideoSource() {
 	$("#videosrc").attr("src", dataURL + "movie.webm");
 }
 
-function loadData(callback) {
-	$.getJSON(dataURL + "meetresultaten.json").done(function(d) {
-		callback(d);
-	});
-}
 
-// gegevens voor de grafiek
-/*
-function grafiekGegevens(json) {
-	json = JSON.parse(json);
-	var gegevens = [];
-	for (var i in json) {
-		gegevens[i] = {x: json[i]['time'], y: json[i]['value'] };
-	}
-	return gegevens;
-}*/
-
+// events
 function videoSpeeltaf(videotag) {
-	console.log("play");
+	updatePlayKnop();
+	updateSnelheidKnop();
 }
-
 function videoPauseert(videotag) {
-	console.log("pause");
+	updatePlayKnop();
+	updateSnelheidKnop();
 }
 // als de gebruiker naar een ander tijdstip springt in de video
 function videoSkipped(videotag) {
 	setHuidigeTijd(videotag.currentTime, "video");
+}
+
+function togglePlay() {
+	var video = $("#videotag").get(0);
+	if (video.paused) {
+		video.play();
+	} else {
+		video.pause();
+	}
+	updatePlayKnop();
+}
+function toggleSpeed() {
+	var video = $("#videotag").get(0);
+	if (playbackRate === 1) {
+		playbackRate = 4;
+	} else {
+		playbackRate = 1;
+	}
+	updateSnelheidKnop();
+}
+
+function updatePlayKnop() {
+	var playknop = $("#knop-play-pause");
+	if ($("#videotag").get(0).paused) {
+		playknop.html("&#9656; Afspelen");
+	} else {
+		playknop.html("&#10073;&#10073; Pause");
+	}
+}
+// regelt ook de snelheid van de video!
+// Er is verschil tussen defaultPlaybackRate en playbackRate wat betreft pause en play drukken
+function updateSnelheidKnop() {
+	var snellerknop = $("#knop-snelheid"), video = $("#videotag");
+	video.get(0).playbackRate = playbackRate;
+	if (playbackRate === 1) {
+		snellerknop.html("&#9193; Sneller afspelen");
+	} else {
+		snellerknop.html("&#9656; Langzamer afspelen");
+	}
 }
 
 function grafiekGeklikt(event) {

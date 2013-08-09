@@ -27,9 +27,9 @@
 </head><body>
 		<ul id="header">
 			<li><a id="routenaam">Route van X</a></li>
-			<li><a id="playknop">&#9654; Afspelen</a></li>
-			<li><a id="snellerknop">Sneller afspelen</a></li>
-			<li><a id="routemenuitem">Bekijk ook andere routes &#x25BC;</a></li>
+			<li><a class="klikbaar" id="knop-play-pause">&#9656; Afspelen</a></li>
+			<li><a class="klikbaar" id="knop-snelheid">&#9193; Sneller afspelen</a></li>
+			<li class="last"><a class="klikbaar" id="knop-route-menu">Bekijk ook andere routes &#x25BC;</a></li>
 		</ul>
 	<div id="grafiek">
 		<canvas id="canvas"></canvas>
@@ -37,12 +37,8 @@
 	<div id="container">
 		<div id="video" class="blok">
 		<div class="paddingborder">
-			<video id="videotag" preload="metadata" controls ontimeupdate="videoSkipped(this);" onplaying="videoSpeeltaf(this);" onpause="videoPauseert(this);">
+			<video id="videotag" preload="metadata" ontimeupdate="videoSkipped(this);" onplaying="videoSpeeltaf(this);" onpause="videoPauseert(this);">
 				<source id="videosrc" src="data/amsterdam-1/movie.webm" type="video/webm">
-				<script>
-// andere locatie voor andere route
-//setVideoSource();
-				</script>
 			</video>
 		</div>
 		</div>
@@ -50,18 +46,17 @@
 		<div class="paddingborder">
 			<div id="kaartje"></div>
 			<script>
-
-			var map = L.map('kaartje').setView([52.2, 5], 7);
-			// add an OpenStreetMap tile layer
-			if (false && navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(
-					function showPosition(position) {
-						map.setView([position.coords.latitude,position.coords.longitude], 15);
-					});
-			}
-			L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-				attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-			}).addTo(map);
+var map = L.map('kaartje').setView([52.15, 5.30], 7);
+// add an OpenStreetMap tile layer
+if (false && navigator.geolocation) {
+	navigator.geolocation.getCurrentPosition(
+		function showPosition(position) {
+			map.setView([position.coords.latitude,position.coords.longitude], 15);
+		});
+}
+L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+	attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
 			</script>
 		</div>
 		</div>
