@@ -8,6 +8,123 @@
 <time>2013-08-07T13:45:05Z</time>
 <bounds minlat="52.342122300" minlon="4.890321493" maxlat="52.367532039" maxlon="4.904975574"/>
 <trk>
+  <name>Huidig spoor: 03 JUN 2013 21:47</name>
+<trkseg>
+<trkpt lat="52.366261510" lon="4.898886709">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:47:02Z</time>
+</trkpt>
+<trkpt lat="52.366126981" lon="4.898882769">
+  <ele>-140.220000</ele>
+  <time>2013-06-03T19:47:27Z</time>
+</trkpt>
+<trkpt lat="52.366066715" lon="4.898924762">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:47:50Z</time>
+</trkpt>
+<trkpt lat="52.366132177" lon="4.898915542">
+  <ele>-140.220000</ele>
+  <time>2013-06-03T19:48:10Z</time>
+</trkpt>
+<trkpt lat="52.366025057" lon="4.898759304">
+  <ele>-140.220000</ele>
+  <time>2013-06-03T19:48:41Z</time>
+</trkpt>
+<trkpt lat="52.365934784" lon="4.898791574">
+  <ele>-140.220000</ele>
+  <time>2013-06-03T19:49:21Z</time>
+</trkpt>
+<trkpt lat="52.365903435" lon="4.898773972">
+  <ele>-139.250000</ele>
+  <time>2013-06-03T19:49:47Z</time>
+</trkpt>
+<trkpt lat="52.365985326" lon="4.898759136">
+  <ele>-139.250000</ele>
+  <time>2013-06-03T19:50:25Z</time>
+</trkpt>
+<trkpt lat="52.366010724" lon="4.898727620">
+  <ele>-141.660000</ele>
+  <time>2013-06-03T19:50:37Z</time>
+</trkpt>
+<trkpt lat="52.366032852" lon="4.898728291">
+  <ele>-139.250000</ele>
+  <time>2013-06-03T19:50:43Z</time>
+</trkpt>
+<trkpt lat="52.366047436" lon="4.898728626">
+  <ele>-137.810000</ele>
+  <time>2013-06-03T19:50:47Z</time>
+</trkpt>
+<trkpt lat="52.366209710" lon="4.898840608">
+  <ele>-138.770000</ele>
+  <time>2013-06-03T19:51:20Z</time>
+</trkpt>
+<trkpt lat="52.366257738" lon="4.898822587">
+  <ele>-139.250000</ele>
+  <time>2013-06-03T19:51:48Z</time>
+</trkpt>
+<trkpt lat="52.366210213" lon="4.898782521">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:52:05Z</time>
+</trkpt>
+<trkpt lat="52.366150366" lon="4.898777828">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:52:36Z</time>
+</trkpt>
+<trkpt lat="52.366002509" lon="4.898749245">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:53:03Z</time>
+</trkpt>
+<trkpt lat="52.365931347" lon="4.898756789">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:53:28Z</time>
+</trkpt>
+<trkpt lat="52.365891533" lon="4.898784030">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:53:55Z</time>
+</trkpt>
+<trkpt lat="52.366088256" lon="4.898790736">
+  <ele>-138.290000</ele>
+  <time>2013-06-03T19:54:22Z</time>
+</trkpt>
+<trkpt lat="52.366330409" lon="4.898916716">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:54:47Z</time>
+</trkpt>
+<trkpt lat="52.366326470" lon="4.898960637">
+  <ele>-141.180000</ele>
+  <time>2013-06-03T19:54:59Z</time>
+</trkpt>
+<trkpt lat="52.366327895" lon="4.898963319">
+  <ele>-137.330000</ele>
+  <time>2013-06-03T19:55:00Z</time>
+</trkpt>
+<trkpt lat="52.366328733" lon="4.898966085">
+  <ele>-139.250000</ele>
+  <time>2013-06-03T19:55:01Z</time>
+</trkpt>
+<trkpt lat="52.366330326" lon="4.898972120">
+  <ele>-140.220000</ele>
+  <time>2013-06-03T19:55:03Z</time>
+</trkpt>
+<trkpt lat="52.366321608" lon="4.899021070">
+  <ele>-139.730000</ele>
+  <time>2013-06-03T19:55:13Z</time>
+</trkpt>
+<trkpt lat="52.366328817" lon="4.898969354">
+  <ele>-140.220000</ele>
+  <time>2013-06-03T19:56:30Z</time>
+</trkpt>
+<trkpt lat="52.366568623" lon="4.898967678">
+  <ele>-139.250000</ele>
+  <time>2013-06-03T19:56:59Z</time>
+</trkpt>
+<trkpt lat="52.366591170" lon="4.898983520">
+  <ele>-138.770000</ele>
+  <time>2013-06-03T19:57:08Z</time>
+</trkpt>
+</trkseg>
+</trk>
+<trk>
   <name>Huidig spoor: 04 JUN 2013 09:02</name>
 <trkseg>
 <trkpt lat="52.366328817" lon="4.898969354">
