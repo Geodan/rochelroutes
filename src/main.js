@@ -12,21 +12,37 @@
 var routes = {
     'Amsterdam': {
         'titel': 'Oscar\'s route van Amsterdam',
-        'pad': 'data/amsterdam-1/'
+        'pad': 'data/amsterdam-1/',
     }
 };
-var route, data, dataURL, huidigeTijd = 0, playbackRate = 1;
+
+for (var key in routes) {
+    if (routes.hasOwnProperty(key)) {
+        var route = routes[key];
+        route.naam = key;
+        route.grafiek = route.pad + 'meetresultaten.json';
+        route.kaart = route.pad + 'track.gpx';
+        route.videosrc = [
+            route.pad + 'movie.mp4',
+            route.pad + 'movie.webm'
+        ];
+    } else {
+        alert('skip ' + key);
+    }
+}
+
+var route, data, huidigeTijd = 0, playbackRate = 1;
 // kaart variabelen. locaties = alle plaatsen zoals: [ [ LatLon: { tijd: ?, hoogte: ? }, ... punten ... ], ... segmenten ... ]
 // beginTijd = Date van eerste locatie. Huidigelocatie = segmentindex in locaties en puntindex, locatieMarker is marker op huidige locatie.
 var locaties, beginTijd = 0, huidigeLocatie = {seg: 0, pt: 0}, locatieMarker = null;
+
 setRoute('Amsterdam');
+
 function setRoute(routeNaam) {
-    route = routeNaam;
-    dataURL = routes[routeNaam].pad;
+    route = routes[routeNaam];
     if (header) {
-        header.labelRouteNaam.setRoute(routes[routeNaam]);
+        header.labelRouteNaam.setRoute(route);
     }
-    //$('#routenaam').html(routes[routeNaam].titel).css('width', 'auto');
 }
 
 var util = {
@@ -55,17 +71,17 @@ function Grafiek() {
 ;
 Grafiek.prototype.init = function() {
     var canvas = $('#canvas');
-    var thiz = this, geklikt = this.onGrafiekGeklikt;
+    var self = this;
     canvas.click(function(event) {
-        geklikt.call(thiz, event);
+        self.onGrafiekGeklikt(event);
     });
     this.onRouteVeranderd();
 };
 Grafiek.prototype.onRouteVeranderd = function() {
-    var thiz = this, redraw = this.tekenGrafiek;
-    $.getJSON(dataURL + 'meetresultaten.json').done(function(d) {
-        thiz.data = d;
-        redraw.call(thiz, d);
+    var self = this;
+    $.getJSON(route.grafiek).done(function(d) {
+        self.data = d;
+        self.tekenGrafiek();
     });
 };
 Grafiek.prototype.onGrafiekGeklikt = function(event) {
@@ -256,36 +272,32 @@ function Video() {
         video.onPlay();
     };
     _vid.onpause = function() {
-        console.log('1');
         video.onPause();
     };
     _vid.ontimeupdate = function() {
-        console.log('2');
         video.onTimeUpdate();
     };
     _vid.onplaying = function() {
-        console.log('3');
         video.onPlay();
     };
     _vid.onratechange = function() {
-        console.log('4');
         video.onRateChanged();
     };
 
-    /*
-     this.vid.attr('onplaying', 'video.onPlay();');
-     this.vid.attr('onpause', 'video.onPause();');
-     this.vid.attr('ontimeupdate', 'video.onTimeUpdate();');
-     this.vid.attr('onratechange', 'video.onRateChanged();');
-     */
-    var thiz = this, toggle = this.togglePlaying;
+    var self = this;
     this.vid.click(function() {
-        toggle.call(thiz);
+        self.togglePlaying();
     });
 }
 
 Video.prototype.setVideoURL = function() {
-    this.vid.attr('src', dataURL + 'movie.webm');
+    this.vid.empty();
+    for (src in route.videosrc) {
+        $("<div>", {
+            'src': src
+        }).appendTo(this.vid);
+    }
+    this.vid.get(0).load();
 };
 // events:
 Video.prototype.onPlay = function() {
@@ -392,7 +404,7 @@ $(document).ready(function() {
         },
         labelRouteNaam: {
             init: function() {
-                $('#routenaam').html(routes[route].titel);
+                $('#routenaam').html(route.titel);
             },
             setRoute: function(route) {
                 $("#routenaam").html(route.titel);
@@ -423,7 +435,7 @@ $(document).ready(function() {
     }).addTo(map);
     // voeg de gpx track toe
     $.ajax({
-        url: dataURL + 'track.gpx',
+        url: route.kaart,
         dataType: 'xml'
     }).done(function(data) {
         locaties = gpxparser.parse_gpx(data);
@@ -448,45 +460,9 @@ $(document).ready(function() {
         }
     });
 });
-/*
- function togglePlay() {
- var video = $('#videotag').get(0);
- if (video.paused) {
- video.play();
- } else {
- video.pause();
- }
- updatePlayKnop();
- }
- function toggleSpeed() {
- if (playbackRate === 1) {
- playbackRate = 4;
- } else {
- playbackRate = 1;
- }
- updateSnelheidKnop();
- }
- 
- function updatePlayKnop() {
- var playknop = $('#knop-play-pause');
- if ($('#videotag').get(0).paused) {
- playknop.html('&#9656; Afspelen');
- } else {
- playknop.html('&#10073;&#10073; Pause');
- }
- }
- // regelt ook de snelheid van de video!
- // Er is verschil tussen defaultPlaybackRate en playbackRate wat betreft pause en play drukken
- function updateSnelheidKnop() {
- var snellerknop = $('#knop-snelheid'), video = $('#videotag');
- video.get(0).playbackRate = playbackRate;
- if (playbackRate === 1) {
- snellerknop.html('&#9193; Sneller afspelen');
- } else {
- snellerknop.html('&#9656; Langzamer afspelen');
- }
- }
- */
+
+
+
 function setHuidigeTijd(tijd, ignore) {
     huidigeTijd = tijd;
     // grafiek
