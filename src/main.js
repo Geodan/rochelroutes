@@ -12,7 +12,7 @@
 var routes = {
     'Amsterdam': {
         'titel': 'Oscar\'s route van Amsterdam',
-        'pad': 'data/amsterdam-1/',
+        'pad': 'data/amsterdam-1/'
     }
 };
 
@@ -33,8 +33,8 @@ for (var key in routes) {
 
 var route, data, huidigeTijd = 0, playbackRate = 1;
 // kaart variabelen. locaties = alle plaatsen zoals: [ [ LatLon: { tijd: ?, hoogte: ? }, ... punten ... ], ... segmenten ... ]
-// beginTijd = Date van eerste locatie. Huidigelocatie = segmentindex in locaties en puntindex, locatieMarker is marker op huidige locatie.
-var locaties, beginTijd = 0, huidigeLocatie = {seg: 0, pt: 0}, locatieMarker = null;
+// Huidigelocatie = segmentindex in locaties en puntindex, locatieMarker is marker op huidige locatie.
+var locaties, huidigeLocatie = {seg: 0, pt: 0}, locatieMarker = null;
 
 setRoute('Amsterdam');
 
@@ -136,7 +136,7 @@ Grafiek.prototype.waardeNaarTijd = function(waarde) {
                 var t1 = Math.abs(this.data[i].time - waarde);
                 var t2 = Math.abs(this.data[i - 1].time - waarde);
                 if (t2 <= t1) {
-// dichterbij
+                    // dichterbij
                     return i - 1;
                 }
             }
@@ -448,7 +448,6 @@ $(document).ready(function() {
             opacity: 1,
             weight: 3
         };
-        beginTijd = locaties[0][0].tijd;
         huidigeLocatie.seg = 0;
         huidigeLocatie.pt = 0;
         locatieMarker = L.marker(locaties[0][0]).addTo(map);
@@ -478,31 +477,19 @@ function setHuidigeTijd(tijd, ignore) {
     }
 }
 
-function next(i, j, forward) {
-    if (forward) {
-// eerstvolgende punt na i,j uit locaties
-        if (locaties[i].length > j + 1) {
-            return {seg: i, pt: j + 1};
-        } else {
-//var k = i + 1;
-            for (i++; i < locaties.length; i++) {
-                if (locaties[i].length > 0) {
-                    return {seg: i, pt: 0};
-                }
-            }
-            return null;
-        }
-    } else {
-// vorige punt
+// returnt het volgende of vorige punt na i,j in locaties[][]
+function next(i, j, vorige) {
+    if (vorige) {
         if (j - 1 >= 0) {
             return {seg: i, pt: j - 1};
         } else {
-            for (i--; i < locaties.length; i++) {
-                if (locaties[i].length > 0) {
-                    return {seg: i, pt: locaties[i].length - 1};
-                }
-            }
-            return null;
+            return {seg: i - 1, pt: locaties[i].length - 1};
+        }
+    } else {
+        if (locaties[i].length > j + 1) {
+            return {seg: i, pt: j + 1};
+        } else {
+            return {seg: i + 1, pt: 0};
         }
     }
 }
@@ -514,60 +501,35 @@ function syncHuidigeLocatie() {
         return;
     }
 
+    var beginTijd = locaties[0][0].tijd;
     var loc = locaties[huidigeLocatie.seg][huidigeLocatie.pt];
     var millitijd = huidigeTijd * 1000;
-    if (loc.tijd - beginTijd === millitijd) {
-        return;
-    } else if (loc.tijd - beginTijd < millitijd) {
-// verder in de tijd
+    if (loc.tijd - beginTijd < millitijd) {
+        // verder in de tijd
+        var vorigeI = huidigeLocatie.seg, vorigeJ = huidigeLocatie.pt;
         for (var i = huidigeLocatie.seg; i < locaties.length; i++) {
             var j = (i === huidigeLocatie.seg) ? huidigeLocatie.pt : 0;
             for (; j < locaties[i].length; j++) {
-// ga elk punt af vanaf seg,pt tot het laatste punt
-                if (locaties[i][j].tijd - beginTijd > millitijd) {
-// kijk welke er het dichtste bijzit: dit punt of de vorige
-                    var vorige = next(i, j, false);
-                    if (vorige !== null) {
-                        var t1 = Math.abs(locaties[i][j].tijd - beginTijd - millitijd);
-                        var t2 = Math.abs(locaties[vorige.seg][vorige.pt].tijd - beginTijd - millitijd);
-                        if (t2 < t1) {
-// dichter bij millitijd in de buurt
-                            huidigeLocatie.seg = vorige.seg;
-                            huidigeLocatie.pt = vorige.pt;
-                            return;
-                        } else if (t2 === t1) {
-                            return;
-                        }
-                    }
-                    huidigeLocatie.seg = i;
-                    huidigeLocatie.pt = j;
+                // ga elk punt af vanaf seg,pt tot het laatste punt
+                if (locaties[i][j].tijd - beginTijd > millitijd && locaties[vorigeI][vorigeJ].tijd - beginTijd < millitijd) {
+                    huidigeLocatie.seg = vorigeI;
+                    huidigeLocatie.pt = vorigeJ;
                     return;
+                } else {
+                    vorigeI = i;
+                    vorigeJ = j;
                 }
             }
         }
-        huidigeLocatie.seg = i - 1;
-        huidigeLocatie.pt = i - 1;
-    } else {
-// terug in de tijd
+        huidigeLocatie.seg = locaties.length - 1;
+        huidigeLocatie.pt = locaties[huidigeLocatie.seg].length - 1;
+    } else if (loc.tijd - beginTijd > millitijd) {
+        // terug in de tijd
         for (var i = huidigeLocatie.seg; i >= 0; i--) {
             var j = (i === huidigeLocatie.seg) ? huidigeLocatie.pt : locaties[i].length - 1;
             for (; j >= 0; j--) {
-// ga elk punt af vanaf seg,pt tot 0,0
+                // ga elk punt af vanaf seg,pt tot 0,0
                 if (locaties[i][j].tijd - beginTijd < millitijd) {
-// kijk welke er het dichtste bijzit: dit punt of de volgende
-                    var volgende = next(i, j, true);
-                    if (volgende !== null) {
-                        var t1 = Math.abs(locaties[i][j].tijd - beginTijd - millitijd);
-                        var t2 = Math.abs(locaties[volgende.seg][volgende.pt].tijd - beginTijd - millitijd);
-                        if (t2 < t1) {
-// dichter bij millitijd in de buurt
-                            huidigeLocatie.seg = volgende.seg;
-                            huidigeLocatie.pt = volgende.pt;
-                            return;
-                        } else if (t2 === t1) {
-                            return;
-                        }
-                    }
                     huidigeLocatie.seg = i;
                     huidigeLocatie.pt = j;
                     return;
@@ -579,9 +541,31 @@ function syncHuidigeLocatie() {
     }
 }
 
+function interpolate(doelWaarde, waarde0, waarde1, punt0, punt1) {
+    var percentage = (doelWaarde - waarde0) / (waarde1 - waarde0); // tussen 0 en 1
+    
+    
+    var lat = punt0.lat + (punt1.lat - punt0.lat) * percentage;
+    var lng = punt0.lng + (punt1.lng - punt0.lng) * percentage;
+    return new L.LatLng(lat, lng);
+}
+
 function syncMarker() {
     if (locatieMarker) {
-        locatieMarker.setLatLng(locaties[huidigeLocatie.seg][huidigeLocatie.pt]);
+        var loc1 = {seg: huidigeLocatie.seg, pt: huidigeLocatie.pt};
+        var loc2 = next(loc1.seg, loc1.pt);
+        var punt1 = locaties[loc1.seg][loc1.pt];
+        var punt2 = locaties[loc2.seg][loc2.pt];
+        var tijd1 = punt1.tijd;
+        var tijd2 = punt2.tijd;
+
+        var beginTijd = locaties[0][0].tijd;
+        var huidigeTijdMillis = huidigeTijd * 1000;
+
+        var locInterpoleerd = interpolate(huidigeTijdMillis,
+                tijd1 - beginTijd, tijd2 - beginTijd, punt1, punt2); // tussen 0 en 1
+
+        locatieMarker.setLatLng(locInterpoleerd);
     }
 }
 
