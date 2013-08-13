@@ -176,13 +176,16 @@ Grafiek.prototype.tekenGrafiek = function() {
     var w = graph.width(), h = graph.height();
     c.fillStyle = '#f8f8f8';
     c.fillRect(0, 0, w, h);
-    var yBounds = this.getYBounds();
     var paddingX = 15, paddingY = paddingX;
-    var paddingLeft = this.getPaddingLeft(c, this.hoogste('value')), paddingBottom = 0;
     w -= 2 * paddingX;
     h -= 2 * paddingY;
+    var paddingLeft = 0, paddingBottom = 0;
+    
     c.translate(paddingX, paddingY);
+    
     if (this.data && this.data.length) {
+        paddingLeft = this.getPaddingLeft(c, this.hoogste('value'));
+        var yBounds = this.getYBounds();
         var minX = this.laagste('time'), maxX = this.hoogste('time');
         c.strokeStyle = 'rgba(150,150,150, 0.5)';
         // verticale strepen
@@ -268,7 +271,6 @@ function Video() {
     this.vid = $('#videotag');
     var _vid = this.vid.get(0);
     _vid.onplaying = function() {
-        console.log('0');
         video.onPlay();
     };
     _vid.onpause = function() {
