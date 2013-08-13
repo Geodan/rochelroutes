@@ -267,6 +267,8 @@ function Video() {
     this.listeners = [];
     this.vid = $('#videotag');
     var _vid = this.vid.get(0);
+    var self = this;
+    this.vid.bind('playing',{widget: self},self.onPlay);
     _vid.onplaying = function() {
         console.log('0');
         video.onPlay();
@@ -277,14 +279,11 @@ function Video() {
     _vid.ontimeupdate = function() {
         video.onTimeUpdate();
     };
-    _vid.onplaying = function() {
-        video.onPlay();
-    };
     _vid.onratechange = function() {
         video.onRateChanged();
     };
 
-    var self = this;
+    
     this.vid.click(function() {
         self.togglePlaying();
     });
@@ -300,10 +299,12 @@ Video.prototype.setVideoURL = function() {
     this.vid.get(0).load();
 };
 // events:
-Video.prototype.onPlay = function() {
-    this.setPlaybackRate();
-    for (var i = 0; i < this.listeners.length; i++) {
-        this.listeners[i].update();
+Video.prototype.onPlay = function(evt) {
+var self = evt.data.widget;
+console.warn('play');
+    self.setPlaybackRate();
+    for (var i = 0; i < self.listeners.length; i++) {
+        self.listeners[i].update();
     }
 };
 Video.prototype.onPause = function() {
