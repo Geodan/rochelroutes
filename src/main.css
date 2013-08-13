@@ -1,144 +1,115 @@
 /* Layout */
 body {
-	max-width: 1200px;
-	margin: 0 auto;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 #header {
-	float: left;
-	width: 100%;
-	padding: 0;
-	margin: 0;
-	list-style: none outside none;
+    float: left;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    list-style: none outside none;
 }
 #header li {
-	float: left;
+    float: left;
 }
 #header a {
-	display: block;
+    display: block;
 }
 #header li.last {
-	float: right;
+    float: right;
 }
 #container {
-	margin: 0 10px;
+    margin: 0 10px;
 }
-/* http://alistapart.com/article/holygrail
-LC = linkerkolom, CC = middelste kolom, RC = rechterkolom
-fullwidth = width + padding
-*/
+
+/* http://alistapart.com/article/holygrail */
 #container {
-	min-width: 600px;
-	width: auto;
-	padding-left: 400px;
+    min-width: 600px;
+    width: auto;
+    padding-left: 400px;
 }
 #container .blok {
-	position: relative;
-	float: left;
+    position: relative;
+    float: left;
 }
 #video {
-	padding: 0;       /* CC padding */
-	width: 100%;
+    padding: 0;
+    width: 100%;
 }
 #kaart {
-	width: 400px;             /* LC width */
-	padding: 0;          /* LC padding */
-	right: 400px;             /* LC fullwidth + CC padding */
-	margin-left: -100%;
+    width: 400px;
+    padding: 0;
+    right: 400px;
+    margin-left: -100%;
 }
 #verhaal {
-	clear: both;
+    clear: both;
 }
-		
-/*** Equal-height Columns ***/
-#container {
-	overflow: hidden;
-}
-#container .blok {
-	padding-bottom: 1001em;     /* X + padding-bottom */
-	margin-bottom: -1000em;     /* X */
-}
-/*
-/*** Footer Fix ***
-* html body {
-	overflow: hidden;
-}		
-* html #footer-wrapper {
-	float: left;
-	position: relative;
-	width: 100%;
-	padding-bottom: 10010px;
-	margin-bottom: -10000px;
-	background: #FFF;         /*** Same as body background ***
-}
-*/
 
 /* Opmaak */
 body {
-	font: 15px/1.25 'Segoe UI', arial,helvetica,sans-serif;
+    font: 15px/1.25 'Segoe UI', arial,helvetica,sans-serif;
 }
 
 #header {
-	background-color: #CCCCCC;
+    background-color: #CCCCCC;
 }
 #header a {
-	color: #666666;
-	text-decoration:none;
-	text-transform: uppercase;
-	border-right: 1px solid #FFFFFF;
-	padding: 0.4em 0.6em;
+    color: #666666;
+    text-decoration:none;
+    text-transform: uppercase;
+    border-right: 1px solid #FFFFFF;
+    padding: 0.4em 0.6em;
 }
 #header a.klikbaar {
-	cursor: pointer;
+    cursor: pointer;
 }
 #header a.klikbaar:hover {
-	background-color:#13A550;
-	color: #FFFFFF;
+    background-color:#13A550;
+    color: #FFFFFF;
 }
 
 #grafiek canvas {
-	height: 150px;
-	width: 100%;
+    width: 100%;
 }
 
 
 .kolom {
-	border: 1px solid #ccc;
+    border: 1px solid #ccc;
 }
 
 .paddingborder {
-	background-color: #F8F8F8;
-	border: 1px solid #EEEEEE;
-	margin: 5px;
+    background-color: #F8F8F8;
+    border: 1px solid #EEEEEE;
+    margin: 5px;
 }
 #kaartje {
-	width: 390px;
-	height: 390px;
+    width: 390px;
+    height: 390px;
 }
 video {
-	width: 100%;
-	height: 387px;
+    width: 100%;
+    height: 387px;
 }
 
 #verhaal {
-	width: 100%;
-	background: purple;
-	border-radius: 3px;
+    width: 100%;
+    background: purple;
+    border-radius: 3px;
 }
 #verhaal #tekst {
-	padding: .75em;
-	color: #fff;
-	text-size: 15px;
+    padding: .75em;
+    color: #fff;
+    font-size: 15px;
 }
 #oproep {
-	margin: 0 auto;
+    margin: 0 auto;
 }
 #oproep span {
-	text-align: center;
-	background-color: #13a550;
-	background: linear-gradient(to bottom, rgba(19,165,80,0.75), #13a550);
-	display: block;
-	padding: 1em 3em;
+    text-align: center;
+    background-color: #13a550;
+    background: linear-gradient(to bottom, rgba(19,165,80,0.75), #13a550);
+    display: block;
+    padding: 1em 3em;
 }
-
-
-

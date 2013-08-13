@@ -1,51 +1,60 @@
 <!DOCTYPE html>
-<html><head>
-	<title>Rochelroutes</title>
-	<meta http-equiv="content-type" content="text/html; charset=UTF8">
-	
-	<link rel="stylesheet" href="src/leaflet/leaflet.css" />
-	<!--[if lte IE 8]> <link rel="stylesheet" href="src/leaflet/leaflet.ie.css" /> <![endif]-->
-	<link rel="stylesheet" type="text/css" href="src/main.css">	
- 
-	<script src="src/jquery.js"></script>
-	<script src="src/leaflet/leaflet.js"></script>
-	<script src="src/gpxparser.js"></script>
-	<script src="src/main.js"></script>
-</head><body>
-		<ul id="header">
-			<li><a id="routenaam">Route van X</a></li>
-			<li><a class="klikbaar" id="knop-play-pause">&#9656; Afspelen</a></li>
-			<li><a class="klikbaar" id="knop-snelheid">&#9193; Sneller afspelen</a></li>
-			<li class="last"><a class="klikbaar" id="knop-route-menu">Bekijk ook andere routes &#x25BC;</a></li>
-		</ul>
-	<div id="grafiek">
-		<canvas id="canvas"></canvas>
-	</div>
-	<div id="container">
-		<div id="video" class="blok">
-			<div class="paddingborder">
-				<video id="videotag" preload="metadata" ontimeupdate="videoSkipped(this);" onplaying="videoSpeeltaf(this);" onpause="videoPauseert(this);">
-					<source id="videosrc" src="data/amsterdam-1/movie.webm" type="video/webm">
-				</video>
-			</div>
-		</div>
-		<div id="kaart" class="blok">
-			<div class="paddingborder">
-				<div id="kaartje">
-				</div>
-			</div>
-		</div>
-		
-		<!-- <div id="right" class="column"></div> -->
-	</div>
-	<div id="verhaal">
-		<p id="tekst">
-			Bestelbusjes rijden vaak op Diesel. Daardoor komt veel roet vrij en dat is heel ongezond.
-		</p>
-	</div>
-	<div id="oproep">
-		<span>Maak hier jouw oproep aan je gemeente</span>
-	</div>
-  
-  </body>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <!--meta http-equiv="content-type" content="text/html; charset=UTF8" /-->
+        <title>Rochelroutes</title>
+
+        <link rel="stylesheet" href="src/leaflet/leaflet.css" />
+        <!--[if lte IE 8]> <link rel="stylesheet" href="src/leaflet/leaflet.ie.css" /> <![endif]-->
+        <link rel="stylesheet" type="text/css" href="src/main.css">
+
+        <script src="src/jquery.js"></script>
+        <script src="src/leaflet/leaflet.js"></script>
+        <script src="src/main.js"></script>
+    </head>
+    <body>
+        <ul id="header">
+            <li>
+                <a id="routenaam">&nbsp;</a>
+            </li>
+            <li>
+                <a class="klikbaar" id="knop-play-pause">&#9656; Afspelen</a>
+            </li>
+            <li>
+                <a class="klikbaar" id="knop-snelheid">&#9193; Sneller afspelen</a>
+            </li>
+            <li class="last">
+                <a class="klikbaar" id="knop-route-menu">Bekijk ook andere routes &#x25BC;</a>
+            </li>
+        </ul>
+        <div id="grafiek">
+            <canvas id="canvas" width="800" height="125"></canvas>
+        </div>
+        <div id="container">
+            <div id="video" class="blok">
+                <div class="paddingborder">
+                    <video id="videotag" preload="metadata"
+                           ontimeupdate="videoSkipped();" onplaying="videoSpeeltaf();" onpause="videoPauseert();">
+                        <source id="videosrc" src="data/amsterdam-1/movie.webm" type="video/webm" />
+                    </video>
+                </div>
+            </div>
+            <div id="kaart" class="blok">
+                <div class="paddingborder">
+                    <div id="kaartje">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="verhaal">
+            <p id="tekst">
+                Bestelbusjes rijden vaak op Diesel. Daardoor komt veel roet vrij en dat is heel ongezond.
+            </p>
+        </div>
+        <div id="oproep">
+            <span>Maak hier jouw oproep aan je gemeente</span>
+        </div>
+
+    </body>
 </html>
