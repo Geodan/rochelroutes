@@ -1,9 +1,21 @@
-/* Layout */
+/*
+paars    #6e2585
+groen    #13a550
+grijs    #cccccc
+blauw    #00a9e0
+oranje   #e37222
+*/
+
 body {
-    max-width: 1200px;
+    color: #333333;
+    font: 11px/11px arial,helvetica,sans-serif;
+    max-width: 957px;
     margin: 0 auto;
 }
+
+/* header */
 #header {
+    background-color: #cccccc;
     float: left;
     width: 100%;
     padding: 0;
@@ -13,19 +25,93 @@ body {
 #header li {
     float: left;
 }
-#header a {
-    display: block;
-}
-#header li.last {
+#header li#route-menu {
     float: right;
 }
+#header a {
+    font-size: 14px;
+    text-decoration:none;
+    text-transform: uppercase;
+    
+    display: block;
+    border-right: 1px solid #FFFFFF;
+    padding: 0.6em 1.2em;
+}
+#header li#route-menu a {
+    border-right: none;
+}
+#header a.klikbaar {
+    cursor: pointer;
+}
+#header a.klikbaar:hover {
+    background-color:#13A550;
+    color: #FFFFFF;
+}
+/* grafiek */
+#grafiek canvas {
+    width: 100%;
+    cursor: pointer;
+}
+/* container */
 #container {
     margin: 0 10px;
 }
+/* paddingborder (in kolom) voor: border, padding en margin */
+.paddingborder {
+    background-color: #F8F8F8;
+    border: 1px solid #cccccc;
+    margin: 5px;
+    position: relative;
+}
+/* video */
+video {
+    width: 100%;
+    height: 387px;
+}
+/* verhaal */
+#verhaal-inline {
+    background-color: #FFFFFF;
+    border: 1px solid #cccccc;
+    bottom: 0;
+    margin: 0;
+    padding: 15px;
+    position: absolute;
+    right: 0;
+    width: 50%;
+}
+#verhaal-inline .tekst {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 170px;
+    vertical-align: bottom;
+}
+#verhaal-inline .gezicht {
+    float: right;
+    width: 108px;
+    height: 143px;
+}
+/* kaart */
+#kaartje {
+    width: 390px;
+    height: 390px;
+}
+/* oproep */
+#oproep {
+    margin: 0 auto;
+}
+#oproep span {
+    text-align: center;
+    background-color: #13a550;
+    background: linear-gradient(to bottom, rgba(19,165,80,0.75), #13a550);
+    display: block;
+    padding: 1em 3em;
+}
+
 
 /* http://alistapart.com/article/holygrail */
 #container {
-    min-width: 600px;
+    min-width: 400px;
     width: auto;
     padding-left: 400px;
 }
@@ -43,73 +129,6 @@ body {
     right: 400px;
     margin-left: -100%;
 }
-#verhaal {
-    clear: both;
-}
-
-/* Opmaak */
-body {
-    font: 15px/1.25 'Segoe UI', arial,helvetica,sans-serif;
-}
-
-#header {
-    background-color: #CCCCCC;
-}
-#header a {
-    color: #666666;
-    text-decoration:none;
-    text-transform: uppercase;
-    border-right: 1px solid #FFFFFF;
-    padding: 0.4em 0.6em;
-}
-#header a.klikbaar {
-    cursor: pointer;
-}
-#header a.klikbaar:hover {
-    background-color:#13A550;
-    color: #FFFFFF;
-}
-
-#grafiek canvas {
-    width: 100%;
-}
-
-
-.kolom {
-    border: 1px solid #ccc;
-}
-
-.paddingborder {
-    background-color: #F8F8F8;
-    border: 1px solid #EEEEEE;
-    margin: 5px;
-}
-#kaartje {
-    width: 390px;
-    height: 390px;
-}
-video {
-    width: 100%;
-    height: 387px;
-}
-
-#verhaal {
-    width: 100%;
-    background: purple;
-    border-radius: 3px;
-}
-#verhaal #tekst {
-    padding: .75em;
-    color: #fff;
-    font-size: 15px;
-}
 #oproep {
-    margin: 0 auto;
-}
-#oproep span {
-    text-align: center;
-    background-color: #13a550;
-    background: linear-gradient(to bottom, rgba(19,165,80,0.75), #13a550);
-    display: block;
-    padding: 1em 3em;
+    clear: both;
 }

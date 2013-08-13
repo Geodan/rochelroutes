@@ -9,13 +9,13 @@
 // 5a route menu
 // -----------------------------------------------------------------------------
 
+var route, huidigeTijd = 0;
 var routes = {
     'Amsterdam': {
         'titel': 'Oscar\'s route van Amsterdam',
         'pad': 'data/amsterdam-1/'
     }
 };
-
 for (var key in routes) {
     if (routes.hasOwnProperty(key)) {
         var route = routes[key];
@@ -30,11 +30,6 @@ for (var key in routes) {
         alert('skip ' + key);
     }
 }
-
-var route, data, huidigeTijd = 0, playbackRate = 1;
-// kaart variabelen. locaties = alle plaatsen zoals: [ [ LatLon: { tijd: ?, hoogte: ? }, ... punten ... ], ... segmenten ... ]
-// Huidigelocatie = segmentindex in locaties en puntindex, locatieMarker is marker op huidige locatie.
-var locaties, huidigeLocatie = {seg: 0, pt: 0}, locatieMarker = null;
 
 setRoute('Amsterdam');
 
@@ -60,23 +55,21 @@ var util = {
     }
 };
 
-
 var header, grafiek, video, kaart;
 
-
+// Grafiek
 function Grafiek() {
     this.data = null;
-    this.init();
-}
-;
-Grafiek.prototype.init = function() {
     var canvas = $('#canvas');
     var self = this;
-    canvas.click(function(event) {
-        self.onGrafiekGeklikt(event);
+    canvas.bind('click', {widget: self}, self.onGrafiekGeklikt);
+    $(window).resize(function(e) {
+        self.tekenGrafiek();
     });
+
     this.onRouteVeranderd();
-};
+}
+// 'events'
 Grafiek.prototype.onRouteVeranderd = function() {
     var self = this;
     $.getJSON(route.grafiek).done(function(d) {
@@ -85,11 +78,12 @@ Grafiek.prototype.onRouteVeranderd = function() {
     });
 };
 Grafiek.prototype.onGrafiekGeklikt = function(event) {
+    var self = event.data.widget;
     var canvas = $('#canvas');
     var offset = canvas.offset();
     var x = offset ? event.clientX - offset.left : event.clientX;
     var c = canvas.get(0).getContext('2d');
-    var paddingLeft = this.getPaddingLeft(c, this.hoogste('value'));
+    var paddingLeft = self.getPaddingLeft(c, self.hoogste('value'));
     var paddingX = 15;
     x -= paddingX + paddingLeft;
     var breedte = canvas.width() - 2 * paddingX - paddingLeft;
@@ -98,9 +92,10 @@ Grafiek.prototype.onGrafiekGeklikt = function(event) {
     } else if (x > breedte) {
         x = breedte;
     }
-    setHuidigeTijd(this.pixelNaarWaardeX(breedte, x,
-            this.laagste('time'), this.hoogste('time')), 'grafiek');
+    setHuidigeTijd(self.pixelNaarWaardeX(breedte, x,
+            self.laagste('time'), self.hoogste('time')), 'grafiek');
 };
+// teken hulpmethodes
 Grafiek.prototype.laagste = function(attr) {
     var min = false;
     for (var i = 0; i < this.data.length; i++) {
@@ -145,7 +140,7 @@ Grafiek.prototype.waardeNaarTijd = function(waarde) {
     }
 };
 Grafiek.prototype.getPaddingLeft = function(context2D, max) {
-    context2D.font = 'italic 9pt Arial';
+    context2D.font = 'italic 11px arial';
     context2D.textAlign = 'right';
     context2D.textBaseline = 'middle';
     return context2D.measureText(max.toString()).width + 5;
@@ -168,26 +163,36 @@ Grafiek.prototype.getYBounds = function() {
     }
     return {min: minY, max: maxY};
 };
+// tekenen
 Grafiek.prototype.tekenGrafiek = function() {
+    var colors = {
+        background: '#f8f8f8',
+        hoofdstrepen: '#333333',
+        strepen: 'rgba(128,128,128,0.5)',
+        yasbeschrijving: '#333333',
+        shape_stroke: 'rgba(110, 37, 133, 0.75)',
+        shape_fill: 'rgba(110, 37, 133, 0.5)',
+        tijd_balk: '#00a9e0'
+    };
     var graph = $('#canvas');
     var graphElem = graph.get(0);
     graphElem.width = $('#grafiek').width();
     var c = graphElem.getContext('2d');
     var w = graph.width(), h = graph.height();
-    c.fillStyle = '#f8f8f8';
+    c.fillStyle = colors.background;
     c.fillRect(0, 0, w, h);
     var paddingX = 15, paddingY = paddingX;
     w -= 2 * paddingX;
     h -= 2 * paddingY;
     var paddingLeft = 0, paddingBottom = 0;
-    
+
     c.translate(paddingX, paddingY);
-    
+
     if (this.data && this.data.length) {
         paddingLeft = this.getPaddingLeft(c, this.hoogste('value'));
         var yBounds = this.getYBounds();
         var minX = this.laagste('time'), maxX = this.hoogste('time');
-        c.strokeStyle = 'rgba(150,150,150, 0.5)';
+        c.strokeStyle = colors.strepen;
         // verticale strepen
         var aantalStrepen = (maxX - minX) / 50; // om de 50 seconden
         for (var i = 0; i < aantalStrepen; i++) {
@@ -199,7 +204,7 @@ Grafiek.prototype.tekenGrafiek = function() {
         }
 
         // ultrafijnstof y-asbeschrijving, bv 40000, 35000, 30000
-        c.fillStyle = '#333333';
+        c.fillStyle = colors.yasbeschrijving;
         // horizontale strepen
         aantalStrepen = 5;
         for (var i = 0; i <= aantalStrepen; i++) {
@@ -235,10 +240,10 @@ Grafiek.prototype.tekenGrafiek = function() {
         c.lineTo(w, h - paddingBottom);
         c.lineTo(paddingLeft, h - paddingBottom);
         c.closePath();
-        c.fillStyle = 'rgba(150, 0, 180, 0.3)';
+        c.fillStyle = colors.shape_fill;
         c.fill();
         c.lineWidth = 2;
-        c.strokeStyle = 'rgba(200, 0, 255, 0.8)';
+        c.strokeStyle = colors.shape_stroke;
         c.stroke();
         // unclip
         if (c.restore) {
@@ -247,7 +252,7 @@ Grafiek.prototype.tekenGrafiek = function() {
     }
     // assen
     c.lineWidth = 1;
-    c.strokeStyle = '#000';
+    c.strokeStyle = colors.hoofdstrepen;
     c.beginPath();
     c.moveTo(paddingLeft, 0);
     c.lineTo(paddingLeft, h - paddingBottom);
@@ -255,7 +260,8 @@ Grafiek.prototype.tekenGrafiek = function() {
     c.stroke();
     // huidigeTijd tekenen
     if (this.data && this.data.length && huidigeTijd <= maxX) {
-        c.strokeStyle = '#0044ff';
+        c.lineWidth = 2;
+        c.strokeStyle = colors.tijd_balk;
         var x = paddingLeft + this.waardeNaarPixelX(w - paddingLeft, huidigeTijd, minX, maxX);
         c.beginPath();
         c.moveTo(x, 0);
@@ -265,63 +271,56 @@ Grafiek.prototype.tekenGrafiek = function() {
 };
 
 
+// Video
 function Video() {
     this.playbackRate = 1;
     this.listeners = [];
     this.vid = $('#videotag');
-    var _vid = this.vid.get(0);
-    var self = this;
-    this.vid.bind('playing',{widget: self},self.onPlay);
-    _vid.onplaying = function() {
-        video.onPlay();
-    };
-    _vid.onpause = function() {
-        video.onPause();
-    };
-    _vid.ontimeupdate = function() {
-        video.onTimeUpdate();
-    };
-    _vid.onratechange = function() {
-        video.onRateChanged();
-    };
 
-    
-    this.vid.click(function() {
+    var self = this;
+    this.vid.bind('playing', {widget: self}, self.onPlay);
+    this.vid.bind('pause', {widget: self}, self.onPause);
+    this.vid.bind('timeupdate', {widget: self}, self.onTimeUpdate);
+    this.vid.bind('ratechange', {widget: self}, self.onRateChanged);
+    this.vid.bind('click', function() {
         self.togglePlaying();
     });
-}
 
-Video.prototype.setVideoURL = function() {
+    this.onRouteVeranderd();
+}
+Video.prototype.onRouteVeranderd = function() {
     this.vid.empty();
-    for (src in route.videosrc) {
-        $("<div>", {
-            'src': src
+    for (var i = 0; i < route.videosrc.length; i++) {
+        $("<source />", {
+            'src': route.videosrc[i]
         }).appendTo(this.vid);
     }
     this.vid.get(0).load();
 };
 // events:
 Video.prototype.onPlay = function(evt) {
-var self = evt.data.widget;
-console.warn('play');
+    var self = evt.data.widget;
     self.setPlaybackRate();
     for (var i = 0; i < self.listeners.length; i++) {
         self.listeners[i].update();
     }
 };
-Video.prototype.onPause = function() {
-    for (var i = 0; i < this.listeners.length; i++) {
-        this.listeners[i].update();
+Video.prototype.onPause = function(evt) {
+    var self = evt.data.widget;
+    for (var i = 0; i < self.listeners.length; i++) {
+        self.listeners[i].update();
     }
 };
-Video.prototype.onTimeUpdate = function() {
-    var time = this.vid.get(0).currentTime;
+Video.prototype.onTimeUpdate = function(evt) {
+    var self = evt.data.widget;
+    var time = self.vid.get(0).currentTime;
     setHuidigeTijd(time, 'video');
 };
-Video.prototype.onRateChanged = function() {
-    this.playbackRate = this.vid.get(0).playbackRate;
-    for (var i = 0; i < this.listeners.length; i++) {
-        this.listeners[i].update();
+Video.prototype.onRateChanged = function(evt) {
+    var self = evt.data.widget;
+    this.playbackRate = self.vid.get(0).playbackRate;
+    for (var i = 0; i < self.listeners.length; i++) {
+        self.listeners[i].update();
     }
 };
 // overige
@@ -354,8 +353,12 @@ Video.prototype.getPlaybackRate = function(video) {
         return this.playbackRate;
     }
 };
-Video.prototype.setCurrentTime = function(currentTime) {
-    this.vid.get(0).currentTime = currentTime;
+Video.prototype.currentTime = function(currentTime) {
+    if (arguments.length === 0) {
+        return this.vid.get(0).currentTime;
+    } else {
+        this.vid.get(0).currentTime = currentTime;
+    }
 };
 // listener moet function 'update()' hebben.
 Video.prototype.addListener = function(listener) {
@@ -363,9 +366,152 @@ Video.prototype.addListener = function(listener) {
 };
 
 
+// Kaart
+function Kaart() {
+    this.options = {
+        line: {
+            stroke: true, color: '#00a9e0', opacity: 1, weight: 5
+        }, marker: {
+            stroke: true, color: '#00a9e0', opacity: 1, weight: 5,
+            fill: true, fillOpacity: 1, fillColor: '#eeeeee'
+        }
+    };
+
+    this.map = L.map('kaartje').setView([52.15, 5.30], 7);
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
+    }).addTo(this.map);
+
+    this.onRouteChanged();
+}
+Kaart.prototype.onRouteChanged = function() {
+    var self = this;
+    $.ajax({
+        url: route.kaart,
+        dataType: 'xml'
+    }).done(function(data) {
+        self.onGPXLoaded(data);
+    });
+};
+Kaart.prototype.onGPXLoaded = function(data) {
+    this.locaties = gpxparser.parse_gpx(data);
+    this.locatie = {segment: 0, punt: 0};
+    if (this.locatieLines) {
+        for (var i = 0; i < this.locatieLines.length; i++) {
+            this.map.removeLayer(this.locatieLines[i]);
+        }
+    }
+    this.locatieLines = [];
+    for (var i = 0; i < this.locaties.length; i++) {
+        this.locatieLines.push(new L.polyline(this.locaties[i], this.options.line).addTo(this.map));
+    }
+    if (this.marker) {
+        this.marker.setLatLng(this.locaties[0][0]);
+        this.marker.setRadius(5);
+    } else {
+        this.marker = new L.CircleMarker(this.locaties[0][0], this.options.marker).setRadius(5).addTo(this.map);
+    }
+    if (this.locaties.length > 0) {
+        this.map.fitBounds(new L.LatLngBounds(this.locaties[this.locaties.length - 1]));
+    }
+};
+Kaart.prototype.onTijdVeranderd = function() {
+    if (this.locaties && this.locatie.segment >= 0 && this.locatie.punt >= 0
+            && this.locatie.segment < this.locaties.length
+            && this.locatie.punt < this.locaties[this.locatie.segment].length) {
+        this.updateMarker();
+    }
+};
+// marker hulpmethodes
+Kaart.prototype.updateLocatie = function() {
+    var beginTijd = this.locaties[0][0].tijd;
+    var locatie = this.locaties[this.locatie.segment][this.locatie.punt];
+    var millitijd = huidigeTijd * 1000;
+    if (locatie.tijd - beginTijd < millitijd) {
+        // verder in de tijd
+        var vorigeI = this.locatie.segment, vorigeJ = this.locatie.punt;
+        for (var i = this.locatie.segment; i < this.locaties.length; i++) {
+            var j = (i === this.locatie.segment) ? this.locatie.punt : 0;
+            for (; j < this.locaties[i].length; j++) {
+                // ga elk punt af vanaf seg,pt tot het laatste punt
+                if (this.locaties[i][j].tijd - beginTijd > millitijd && this.locaties[vorigeI][vorigeJ].tijd - beginTijd < millitijd) {
+                    this.locatie.segment = vorigeI;
+                    this.locatie.punt = vorigeJ;
+                    return;
+                } else {
+                    vorigeI = i;
+                    vorigeJ = j;
+                }
+            }
+        }
+        this.locatie.segment = this.locaties.length - 1;
+        this.locatie.punt = this.locaties[this.locatie.segment].length - 1;
+    } else if (locatie.tijd - beginTijd > millitijd) {
+        // terug in de tijd
+        for (var i = this.locatie.segment; i >= 0; i--) {
+            var j = (i === this.locatie.segment) ? this.locatie.punt : this.locaties[i].length - 1;
+            for (; j >= 0; j--) {
+                // ga elk punt af vanaf seg,pt tot 0,0
+                if (this.locaties[i][j].tijd - beginTijd < millitijd) {
+                    this.locatie.segment = i;
+                    this.locatie.punt = j;
+                    return;
+                }
+            }
+        }
+        this.locatie.segment = 0;
+        this.locatie.punt = 0;
+    }
+};
+// returnt het volgende of vorige punt na i,j in locaties[][]
+Kaart.prototype.next = function(i, j, vorige) {
+    if (vorige) {
+        if (j - 1 >= 0) {
+            return {segment: i, punt: j - 1};
+        } else {
+            return {segment: i - 1, punt: this.locaties[i].length - 1};
+        }
+    } else {
+        if (this.locaties[i].length > j + 1) {
+            return {segment: i, punt: j + 1};
+        } else {
+            return {segment: i + 1, punt: 0};
+        }
+    }
+};
+// linear interpolatie van punt0 tot punt1
+Kaart.prototype.interpolate = function(doelWaarde, waarde0, waarde1, punt0, punt1) {
+    var percentage = (doelWaarde - waarde0) / (waarde1 - waarde0); // tussen 0 en 1
+
+    var lat = punt0.lat + (punt1.lat - punt0.lat) * percentage;
+    var lng = punt0.lng + (punt1.lng - punt0.lng) * percentage;
+    return new L.LatLng(lat, lng);
+};
+Kaart.prototype.updateMarker = function() {
+    if (this.marker) {
+        this.updateLocatie();
+        var loc1 = this.locatie;
+        var loc2 = this.next(loc1.segment, loc1.punt);
+        var punt1 = this.locaties[loc1.segment][loc1.punt];
+        var punt2 = this.locaties[loc2.segment][loc2.punt];
+        var tijd1 = punt1.tijd;
+        var tijd2 = punt2.tijd;
+
+        var beginTijd = this.locaties[0][0].tijd;
+        var huidigeTijdMillis = huidigeTijd * 1000;
+
+        var locInterpoleerd = this.interpolate(huidigeTijdMillis,
+                tijd1 - beginTijd, tijd2 - beginTijd, punt1, punt2); // tussen 0 en 1
+
+        this.marker.setLatLng(locInterpoleerd);
+    }
+};
+
+
 $(document).ready(function() {
     grafiek = new Grafiek();
     video = new Video();
+    kaart = new Kaart();
 
     header = {
         knopPlay: {
@@ -425,156 +571,29 @@ $(document).ready(function() {
     header.labelRouteNaam.init();
     video.addListener(header.knopPlay);
     video.addListener(header.knopSpeed);
-
-    // laad de kaart met openstreetmap laag
-    var map = L.map('kaartje').setView([52.15, 5.30], 7);
-    if (false && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(pos) {
-            map.setView([pos.coords.latitude, pos.coords.longitude], 15);
-        });
-    }
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-    // voeg de gpx track toe
-    $.ajax({
-        url: route.kaart,
-        dataType: 'xml'
-    }).done(function(data) {
-        locaties = gpxparser.parse_gpx(data);
-        if (locaties.length === 0) {
-            return;
-        }
-// http://leafletjs.com/reference.html#path-options
-        var polyline_options = {
-            color: '#7237A3',
-            opacity: 1,
-            weight: 3
-        };
-        huidigeLocatie.seg = 0;
-        huidigeLocatie.pt = 0;
-        locatieMarker = L.marker(locaties[0][0]).addTo(map);
-        for (var i = 0; i < locaties.length; i++) {
-            new L.polyline(locaties[i], polyline_options).addTo(map);
-        }
-        if (locaties.length >= 1) {
-            map.fitBounds(new L.LatLngBounds(locaties[locaties.length - 1]), {padding: [5, 5]});
-        }
-    });
 });
 
 
 
 function setHuidigeTijd(tijd, ignore) {
     huidigeTijd = tijd;
-    // grafiek
-    grafiek.tekenGrafiek();
     // video
     if (ignore !== 'video') {
-        video.setCurrentTime(huidigeTijd);
+        video.currentTime(huidigeTijd);
+        if (video.currentTime() !== huidigeTijd) {
+            // luistert niet naar set current time.
+            // We kunnen dus niet stukken overslaan...
+            // Misschien is het nog niet binnengehaald?
+            return;
+        }
     }
+    // grafiek
+    grafiek.tekenGrafiek();
     // kaart
     if (ignore !== 'kaart') {
-        syncHuidigeLocatie();
-        syncMarker();
+        kaart.onTijdVeranderd();
     }
 }
-
-// returnt het volgende of vorige punt na i,j in locaties[][]
-function next(i, j, vorige) {
-    if (vorige) {
-        if (j - 1 >= 0) {
-            return {seg: i, pt: j - 1};
-        } else {
-            return {seg: i - 1, pt: locaties[i].length - 1};
-        }
-    } else {
-        if (locaties[i].length > j + 1) {
-            return {seg: i, pt: j + 1};
-        } else {
-            return {seg: i + 1, pt: 0};
-        }
-    }
-}
-
-function syncHuidigeLocatie() {
-    if (!locaties || huidigeLocatie.seg < 0 || huidigeLocatie.pt < 0
-            || huidigeLocatie.seg >= locaties.length
-            || huidigeLocatie.pt >= locaties[huidigeLocatie.seg].length) {
-        return;
-    }
-
-    var beginTijd = locaties[0][0].tijd;
-    var loc = locaties[huidigeLocatie.seg][huidigeLocatie.pt];
-    var millitijd = huidigeTijd * 1000;
-    if (loc.tijd - beginTijd < millitijd) {
-        // verder in de tijd
-        var vorigeI = huidigeLocatie.seg, vorigeJ = huidigeLocatie.pt;
-        for (var i = huidigeLocatie.seg; i < locaties.length; i++) {
-            var j = (i === huidigeLocatie.seg) ? huidigeLocatie.pt : 0;
-            for (; j < locaties[i].length; j++) {
-                // ga elk punt af vanaf seg,pt tot het laatste punt
-                if (locaties[i][j].tijd - beginTijd > millitijd && locaties[vorigeI][vorigeJ].tijd - beginTijd < millitijd) {
-                    huidigeLocatie.seg = vorigeI;
-                    huidigeLocatie.pt = vorigeJ;
-                    return;
-                } else {
-                    vorigeI = i;
-                    vorigeJ = j;
-                }
-            }
-        }
-        huidigeLocatie.seg = locaties.length - 1;
-        huidigeLocatie.pt = locaties[huidigeLocatie.seg].length - 1;
-    } else if (loc.tijd - beginTijd > millitijd) {
-        // terug in de tijd
-        for (var i = huidigeLocatie.seg; i >= 0; i--) {
-            var j = (i === huidigeLocatie.seg) ? huidigeLocatie.pt : locaties[i].length - 1;
-            for (; j >= 0; j--) {
-                // ga elk punt af vanaf seg,pt tot 0,0
-                if (locaties[i][j].tijd - beginTijd < millitijd) {
-                    huidigeLocatie.seg = i;
-                    huidigeLocatie.pt = j;
-                    return;
-                }
-            }
-        }
-        huidigeLocatie.seg = 0;
-        huidigeLocatie.pt = 0;
-    }
-}
-
-function interpolate(doelWaarde, waarde0, waarde1, punt0, punt1) {
-    var percentage = (doelWaarde - waarde0) / (waarde1 - waarde0); // tussen 0 en 1
-    
-    
-    var lat = punt0.lat + (punt1.lat - punt0.lat) * percentage;
-    var lng = punt0.lng + (punt1.lng - punt0.lng) * percentage;
-    return new L.LatLng(lat, lng);
-}
-
-function syncMarker() {
-    if (locatieMarker) {
-        var loc1 = {seg: huidigeLocatie.seg, pt: huidigeLocatie.pt};
-        var loc2 = next(loc1.seg, loc1.pt);
-        var punt1 = locaties[loc1.seg][loc1.pt];
-        var punt2 = locaties[loc2.seg][loc2.pt];
-        var tijd1 = punt1.tijd;
-        var tijd2 = punt2.tijd;
-
-        var beginTijd = locaties[0][0].tijd;
-        var huidigeTijdMillis = huidigeTijd * 1000;
-
-        var locInterpoleerd = interpolate(huidigeTijdMillis,
-                tijd1 - beginTijd, tijd2 - beginTijd, punt1, punt2); // tussen 0 en 1
-
-        locatieMarker.setLatLng(locInterpoleerd);
-    }
-}
-
-$(window).resize(function(e) {
-    grafiek.tekenGrafiek();
-});
 
 gpxparser = {
     parse_gpx: function(xml) {
