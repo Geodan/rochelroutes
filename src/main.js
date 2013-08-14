@@ -1,68 +1,63 @@
-// -----------------------------------------------------------------------------
-// NOG TE DOEN:
-//
-// 1. object georienteerd
-// 2. kaart beweegt mee
-// 3. grafiek schaling wordt animatie
-// 4. gezichten en verhaaltjes.
-// 5. meerdere routes
-// 5a route menu
-// -----------------------------------------------------------------------------
-
-var route, huidigeTijd = 0;
+/* -----------------------------------------------------------------------------
+ TODO:
+ 1. klikken op de kaart
+ 2. grafiek schaling wordt animatie
+ 3. gezichten en verhaaltjes.
+ ------------------------------------------------------------------------------*/
 var routes = {
     'Amsterdam': {
         'titel': 'Oscar\'s route van Amsterdam',
         'pad': 'data/amsterdam-1/'
-    }
-};
-for (var key in routes) {
-    if (routes.hasOwnProperty(key)) {
-        var route = routes[key];
-        route.naam = key;
-        route.grafiek = route.pad + 'meetresultaten.json';
-        route.kaart = route.pad + 'track.gpx';
-        route.videosrc = [
-            route.pad + 'movie.mp4',
-            route.pad + 'movie.webm'
-        ];
-    } else {
-        alert('skip ' + key);
-    }
-}
-
-setRoute('Amsterdam');
-
-function setRoute(routeNaam) {
-    route = routes[routeNaam];
-    if (header) {
-        header.labelRouteNaam.setRoute(route);
-    }
-}
-
-var util = {
-    rondAf: function(getal, significanteCijfers) {
-        var verkleining = Math.pow(10, this.aantalCijfers(getal) - significanteCijfers);
-        return Math.round(getal / verkleining) * verkleining;
     },
-    aantalCijfers: function(getal) {
-        var check = 1, cijfers = 0;
-        while (getal >= check) {
-            check *= 10;
-            cijfers++;
-        }
-        return cijfers;
+    'Test': {
+        'titel': 'test route van niks eigenlijk...',
+        'pad': 'data/amsterdam-1/'
     }
 };
+(function() {
+    for (var key in routes) {
+        if (routes.hasOwnProperty(key)) {
+            var route = routes[key];
+            route.naam = key;
+            route.grafiek = route.pad + 'meetresultaten.json';
+            route.kaart = route.pad + 'track.gpx';
+            route.verhaal = route.pad + 'verhaal.json';
+            route.faceDir = route.pad + 'faces/';
+            route.videosrc = [
+                route.pad + 'movie.mp4',
+                route.pad + 'movie.webm'
+            ];
+        }
+    }
+}());
 
-var header, grafiek, video, kaart;
+var grafiek, video, kaart, header, gpxtracker, verhaal;
+
+$(document).ready(function() {
+    header.setRoute('Amsterdam');
+
+    header.labelRouteNaam.init();
+    header.knopPlay.init();
+    header.knopSpeed.init();
+    header.knopRouteMenu.init();
+
+    grafiek = new Grafiek();
+    kaart = new Kaart();
+    video = new Video();
+    verhaal = new Verhaal();
+
+    video.addListener(header.knopPlay);
+    video.addListener(header.knopSpeed);
+});
+
+
 
 // Grafiek
 function Grafiek() {
     this.data = null;
-    var canvas = $('#canvas');
+
     var self = this;
-    canvas.bind('click', {widget: self}, self.onGrafiekGeklikt);
+    $('#canvas').bind('click', {widget: self}, self.onGrafiekGeklikt);
     $(window).resize(function(e) {
         self.tekenGrafiek();
     });
@@ -72,16 +67,16 @@ function Grafiek() {
 // 'events'
 Grafiek.prototype.onRouteVeranderd = function() {
     var self = this;
-    $.getJSON(route.grafiek).done(function(d) {
+    $.getJSON(header.route.grafiek).done(function(d) {
         self.data = d;
         self.tekenGrafiek();
     });
 };
-Grafiek.prototype.onGrafiekGeklikt = function(event) {
-    var self = event.data.widget;
+Grafiek.prototype.onGrafiekGeklikt = function(evt) {
+    var self = evt.data.widget;
     var canvas = $('#canvas');
     var offset = canvas.offset();
-    var x = offset ? event.clientX - offset.left : event.clientX;
+    var x = offset ? evt.clientX - offset.left : evt.clientX;
     var c = canvas.get(0).getContext('2d');
     var paddingLeft = self.getPaddingLeft(c, self.hoogste('value'));
     var paddingX = 15;
@@ -92,8 +87,12 @@ Grafiek.prototype.onGrafiekGeklikt = function(event) {
     } else if (x > breedte) {
         x = breedte;
     }
-    setHuidigeTijd(self.pixelNaarWaardeX(breedte, x,
+    header.setHuidigeTijd(self.pixelNaarWaardeX(breedte, x,
             self.laagste('time'), self.hoogste('time')), 'grafiek');
+};
+Grafiek.prototype.onTijdVeranderd = function() {
+    // grafiek opnieuw tekenen
+    this.tekenGrafiek();
 };
 // teken hulpmethodes
 Grafiek.prototype.laagste = function(attr) {
@@ -140,7 +139,7 @@ Grafiek.prototype.waardeNaarTijd = function(waarde) {
     }
 };
 Grafiek.prototype.getPaddingLeft = function(context2D, max) {
-    context2D.font = 'italic 11px arial';
+    context2D.font = '11px arial';
     context2D.textAlign = 'right';
     context2D.textBaseline = 'middle';
     return context2D.measureText(max.toString()).width + 5;
@@ -148,7 +147,7 @@ Grafiek.prototype.getPaddingLeft = function(context2D, max) {
 Grafiek.prototype.getYBounds = function() {
     var minY = 0, maxY = 40000;
     if (this.data && this.data.length > 0) {
-        var hoogsteWaarde = false, huidigeIndex = this.waardeNaarTijd(huidigeTijd);
+        var hoogsteWaarde = false, huidigeIndex = this.waardeNaarTijd(header.huidigeTijd);
         for (var i = huidigeIndex - 10; i <= huidigeIndex + 10; i++) {
             if (i >= 0 && i < this.data.length) {
                 var waarde = this.data[i].value;
@@ -163,27 +162,31 @@ Grafiek.prototype.getYBounds = function() {
     }
     return {min: minY, max: maxY};
 };
+Grafiek.prototype.rondAf = function(getal, significanteCijfers) {
+    var check = 1, cijfers = 0;
+    while (getal >= check) {
+        check *= 10;
+        cijfers++;
+    }
+    var verkleining = Math.pow(10, cijfers - significanteCijfers);
+    return Math.round(getal / verkleining) * verkleining;
+};
 // tekenen
 Grafiek.prototype.tekenGrafiek = function() {
     var colors = {
-        background: '#f8f8f8',
         hoofdstrepen: '#333333',
         strepen: 'rgba(128,128,128,0.5)',
-        yasbeschrijving: '#333333',
-        shape_stroke: 'rgba(110, 37, 133, 0.75)',
-        shape_fill: 'rgba(110, 37, 133, 0.5)',
+        yasbeschrijving: '#000000',
+        shape_stroke: 'rgba(110, 37, 133, 0.6)',
+        shape_fill: 'rgba(110, 37, 133, 0.4)',
         tijd_balk: '#00a9e0'
     };
     var graph = $('#canvas');
     var graphElem = graph.get(0);
     graphElem.width = $('#grafiek').width();
     var c = graphElem.getContext('2d');
-    var w = graph.width(), h = graph.height();
-    c.fillStyle = colors.background;
-    c.fillRect(0, 0, w, h);
     var paddingX = 15, paddingY = paddingX;
-    w -= 2 * paddingX;
-    h -= 2 * paddingY;
+    var w = graph.width() - 2 * paddingX, h = graph.height() - 2 * paddingY;
     var paddingLeft = 0, paddingBottom = 0;
 
     c.translate(paddingX, paddingY);
@@ -192,9 +195,10 @@ Grafiek.prototype.tekenGrafiek = function() {
         paddingLeft = this.getPaddingLeft(c, this.hoogste('value'));
         var yBounds = this.getYBounds();
         var minX = this.laagste('time'), maxX = this.hoogste('time');
+
         c.strokeStyle = colors.strepen;
         // verticale strepen
-        var aantalStrepen = (maxX - minX) / 50; // om de 50 seconden
+        var aantalStrepen = (maxX - minX) / 60; // om de 60 seconden
         for (var i = 0; i < aantalStrepen; i++) {
             var x = paddingLeft + (w - paddingLeft) * i / aantalStrepen;
             c.beginPath();
@@ -206,14 +210,18 @@ Grafiek.prototype.tekenGrafiek = function() {
         // ultrafijnstof y-asbeschrijving, bv 40000, 35000, 30000
         c.fillStyle = colors.yasbeschrijving;
         // horizontale strepen
-        aantalStrepen = 5;
+        var omde = 10000, keer5 = true;
+        do {
+            aantalStrepen = (yBounds.max - yBounds.min) / omde;
+            omde *= keer5 ? 5 : 2;
+        } while (aantalStrepen > 10);
         for (var i = 0; i <= aantalStrepen; i++) {
             var y = (h - paddingBottom) - (h - paddingBottom) * i / aantalStrepen;
             c.beginPath();
             c.moveTo(paddingLeft, y);
             c.lineTo(w, y);
             c.stroke();
-            var value = util.rondAf(yBounds.min + (yBounds.max - yBounds.min) * i / aantalStrepen, 3);
+            var value = this.rondAf(yBounds.min + (yBounds.max - yBounds.min) * i / aantalStrepen, 3);
             c.fillText(value.toString(), paddingLeft - 5, y);
         }
         // clip
@@ -259,8 +267,10 @@ Grafiek.prototype.tekenGrafiek = function() {
     c.lineTo(w, h - paddingBottom);
     c.stroke();
     // huidigeTijd tekenen
-    if (this.data && this.data.length && huidigeTijd <= maxX) {
-        c.lineWidth = 2;
+    if (this.data && this.data.length) {
+        var huidigeTijd = header.huidigeTijd > maxX ? maxX : header.huidigeTijd;
+
+        c.lineWidth = 3;
         c.strokeStyle = colors.tijd_balk;
         var x = paddingLeft + this.waardeNaarPixelX(w - paddingLeft, huidigeTijd, minX, maxX);
         c.beginPath();
@@ -269,7 +279,6 @@ Grafiek.prototype.tekenGrafiek = function() {
         c.stroke();
     }
 };
-
 
 // Video
 function Video() {
@@ -290,9 +299,9 @@ function Video() {
 }
 Video.prototype.onRouteVeranderd = function() {
     this.vid.empty();
-    for (var i = 0; i < route.videosrc.length; i++) {
+    for (var i = 0; i < header.route.videosrc.length; i++) {
         $("<source />", {
-            'src': route.videosrc[i]
+            'src': header.route.videosrc[i]
         }).appendTo(this.vid);
     }
     this.vid.get(0).load();
@@ -314,7 +323,7 @@ Video.prototype.onPause = function(evt) {
 Video.prototype.onTimeUpdate = function(evt) {
     var self = evt.data.widget;
     var time = self.vid.get(0).currentTime;
-    setHuidigeTijd(time, 'video');
+    header.setHuidigeTijd(time, 'video');
 };
 Video.prototype.onRateChanged = function(evt) {
     var self = evt.data.widget;
@@ -364,7 +373,10 @@ Video.prototype.currentTime = function(currentTime) {
 Video.prototype.addListener = function(listener) {
     this.listeners.push(listener);
 };
-
+Video.prototype.onTijdVeranderd = function() {
+    video.currentTime(header.huidigeTijd);
+    return video.currentTime() === header.huidigeTijd;
+};
 
 // Kaart
 function Kaart() {
@@ -373,21 +385,25 @@ function Kaart() {
             stroke: true, color: '#00a9e0', opacity: 1, weight: 5
         }, marker: {
             stroke: true, color: '#00a9e0', opacity: 1, weight: 5,
-            fill: true, fillOpacity: 1, fillColor: '#eeeeee'
+            fill: true, fillOpacity: 1, fillColor: '#eeeeee',
+            radius: 7.5
         }
     };
 
-    this.map = L.map('kaartje').setView([52.15, 5.30], 7);
+    this.map = L.map('kaartje').setView([52.15, 5.30], 10);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
     }).addTo(this.map);
 
-    this.onRouteChanged();
+    this.map.on('movestart', this.onMoveStart, this);
+    this.map.on('moveend', this.onMoveEnd, this);
+
+    this.onRouteVeranderd();
 }
-Kaart.prototype.onRouteChanged = function() {
+Kaart.prototype.onRouteVeranderd = function() {
     var self = this;
     $.ajax({
-        url: route.kaart,
+        url: header.route.kaart,
         dataType: 'xml'
     }).done(function(data) {
         self.onGPXLoaded(data);
@@ -403,30 +419,64 @@ Kaart.prototype.onGPXLoaded = function(data) {
     }
     this.locatieLines = [];
     for (var i = 0; i < this.locaties.length; i++) {
-        this.locatieLines.push(new L.polyline(this.locaties[i], this.options.line).addTo(this.map));
+        this.locatieLines.push(new L.polyline(this.locaties[i], this.options.line).on('click', this.onRouteClick, this).addTo(this.map));
     }
     if (this.marker) {
         this.marker.setLatLng(this.locaties[0][0]);
-        this.marker.setRadius(5);
+        this.marker.setRadius(this.options.marker.radius);
+        // push to the top layer
+        this.map.removeLayer(this.marker);
+        this.map.addLayer(this.marker);
     } else {
-        this.marker = new L.CircleMarker(this.locaties[0][0], this.options.marker).setRadius(5).addTo(this.map);
+        this.marker = new L.CircleMarker(this.locaties[0][0], this.options.marker).setRadius(this.options.marker.radius).addTo(this.map);
     }
     if (this.locaties.length > 0) {
-        this.map.fitBounds(new L.LatLngBounds(this.locaties[this.locaties.length - 1]));
+        this.beweegKaartAlsNodig();
     }
 };
 Kaart.prototype.onTijdVeranderd = function() {
+    // kaart (marker verplaatsen + evt. kaart bewegen)
     if (this.locaties && this.locatie.segment >= 0 && this.locatie.punt >= 0
             && this.locatie.segment < this.locaties.length
             && this.locatie.punt < this.locaties[this.locatie.segment].length) {
         this.updateMarker();
+        this.beweegKaartAlsNodig();
     }
+};
+
+Kaart.prototype.onMoveStart = function() {
+    if (this.ignoreMoveEvent) {
+        return;
+    }
+    var self = this;
+    if (self.bezigCooldown) {
+        clearTimeout(self.bezigCooldown);
+    }
+    self.isBezig = true;
+    // de gebruiker is bezig met de kaart (bijv bewegen)
+    // we willen dus niet de kaart bewegen naar de huidige locatie...
+};
+Kaart.prototype.onMoveEnd = function() {
+    if (this.ignoreMoveEvent) {
+        return;
+    }
+    var self = this;
+    if (self.bezigCooldown) {
+        clearTimeout(self.bezigCooldown);
+    }
+    self.bezigCooldown = setTimeout(function() {
+        self.isBezig = false;
+        self.bezigCooldown = null;
+    }, 5000);
+};
+Kaart.prototype.onRouteClick = function(evt) {
+    alert('burp');
 };
 // marker hulpmethodes
 Kaart.prototype.updateLocatie = function() {
     var beginTijd = this.locaties[0][0].tijd;
     var locatie = this.locaties[this.locatie.segment][this.locatie.punt];
-    var millitijd = huidigeTijd * 1000;
+    var millitijd = header.huidigeTijd * 1000;
     if (locatie.tijd - beginTijd < millitijd) {
         // verder in de tijd
         var vorigeI = this.locatie.segment, vorigeJ = this.locatie.punt;
@@ -485,6 +535,7 @@ Kaart.prototype.interpolate = function(doelWaarde, waarde0, waarde1, punt0, punt
 
     var lat = punt0.lat + (punt1.lat - punt0.lat) * percentage;
     var lng = punt0.lng + (punt1.lng - punt0.lng) * percentage;
+
     return new L.LatLng(lat, lng);
 };
 Kaart.prototype.updateMarker = function() {
@@ -492,108 +543,190 @@ Kaart.prototype.updateMarker = function() {
         this.updateLocatie();
         var loc1 = this.locatie;
         var loc2 = this.next(loc1.segment, loc1.punt);
+
         var punt1 = this.locaties[loc1.segment][loc1.punt];
         var punt2 = this.locaties[loc2.segment][loc2.punt];
-        var tijd1 = punt1.tijd;
-        var tijd2 = punt2.tijd;
 
         var beginTijd = this.locaties[0][0].tijd;
-        var huidigeTijdMillis = huidigeTijd * 1000;
+        var huidigeTijdMillis = header.huidigeTijd * 1000;
 
         var locInterpoleerd = this.interpolate(huidigeTijdMillis,
-                tijd1 - beginTijd, tijd2 - beginTijd, punt1, punt2); // tussen 0 en 1
+                punt1.tijd - beginTijd, punt2.tijd - beginTijd, punt1, punt2); // tussen 0 en 1
 
         this.marker.setLatLng(locInterpoleerd);
     }
 };
-
-
-$(document).ready(function() {
-    grafiek = new Grafiek();
-    video = new Video();
-    kaart = new Kaart();
-
-    header = {
-        knopPlay: {
-            init: function() {
-                $('#knop-play-pause').click(this.onPress);
-            },
-            onPress: function() {
-                video.togglePlaying();
-            },
-            update: function() {
-                var playknop = $('#knop-play-pause');
-                if (video.isPlaying()) {
-                    playknop.html('&#10073;&#10073; Pause');
-                } else {
-                    playknop.html('&#9656; Afspelen');
-                }
-            }
-        },
-        knopSpeed: {
-            init: function() {
-                $('#knop-snelheid').click(this.onPress);
-            },
-            onPress: function() {
-                if (video.getPlaybackRate() === 1) {
-                    video.setPlaybackRate(4);
-                } else {
-                    video.setPlaybackRate(1);
-                }
-            },
-            update: function() {
-                var speedknop = $('#knop-snelheid');
-                var rate = video.getPlaybackRate();
-                if (rate === 1) {
-                    speedknop.html('&#9193; Sneller afspelen');
-                } else {
-                    speedknop.html('&#9656; Langzamer afspelen');
-                }
-            }
-        },
-        labelRouteNaam: {
-            init: function() {
-                $('#routenaam').html(route.titel);
-            },
-            setRoute: function(route) {
-                $("#routenaam").html(route.titel);
-            }
-        },
-        knopAndereRoutes: {
-            onPress: function() {
-
-            }
+Kaart.prototype.beweegKaartAlsNodig = function() {
+    if (this.marker) {
+        var markerPos = this.marker.getLatLng();
+        var mapBounds = this.map.getBounds();
+        if (!mapBounds.contains(markerPos) && !this.isBezig) {
+            this.modifyMap(true);
+            this.map.setView(markerPos, 17);
+            this.modifyMap(false);
         }
-    };
-
-    header.knopPlay.init();
-    header.knopSpeed.init();
-    header.labelRouteNaam.init();
-    video.addListener(header.knopPlay);
-    video.addListener(header.knopSpeed);
-});
+    }
+};
+// don't handle events when we move the map programmatically
+Kaart.prototype.modifyMap = function(started) {
+    this.ignoreMoveEvent = started;
+};
 
 
+// Verhaal
+function Verhaal() {
+    this.verhaal = $('#verhaal');
+    this.tekst = $('#verhaal-tekst');
+    this.gezicht = $('#gezicht');
+    this.tijdZichtbaar = 10;
+    this.gezichtExtensie = '.jpg';
 
-function setHuidigeTijd(tijd, ignore) {
-    huidigeTijd = tijd;
-    // video
-    if (ignore !== 'video') {
-        video.currentTime(huidigeTijd);
-        if (video.currentTime() !== huidigeTijd) {
-            // luistert niet naar set current time.
-            // We kunnen dus niet stukken overslaan...
-            // Misschien is het nog niet binnengehaald?
+    this.onRouteVeranderd();
+}
+Verhaal.prototype.onRouteVeranderd = function() {
+    var self = this;
+    $.getJSON(header.route.verhaal).done(function(d) {
+        self.data = d;
+    });
+};
+Verhaal.prototype.onTijdVeranderd = function() {
+    for (var i = 0; i < this.data.length; i++) {
+        var verhaal = this.data[i];
+        if (header.huidigeTijd >= verhaal.time &&
+                header.huidigeTijd < verhaal.time + this.tijdZichtbaar) {
+            this.tekst.html(verhaal.text);
+            if (verhaal.face) {
+                this.gezicht.attr('src', header.route.faceDir + verhaal.face + this.gezichtExtensie);
+            }
+            
+            
+            if (!this.verhaal.is(':visible')) {
+                this.verhaal.fadeIn(500);
+            }
             return;
         }
     }
-    // grafiek
-    grafiek.tekenGrafiek();
-    // kaart
-    if (ignore !== 'kaart') {
+    // geen verhaal.
+    var self = this;
+    this.verhaal.fadeOut(500, function() {
+        self.tekst.html('');
+        self.gezicht.attr('src', '');
+    });
+};
+
+
+header = {
+    huidigeTijd: 0,
+    route: routes['Amsterdam'],
+    labelRouteNaam: {
+        init: function() {
+            this.setRoute(header.route);
+        },
+        setRoute: function(route) {
+            $("#routenaam").html(route.titel);
+        }
+    },
+    knopPlay: {
+        init: function() {
+            $('#knop-play-pause').click(this.onPress);
+        },
+        onPress: function() {
+            video.togglePlaying();
+        },
+        update: function() {
+            var playknop = $('#knop-play-pause');
+            if (video.isPlaying()) {
+                playknop.html('&#10073;&#10073; Pause');
+            } else {
+                playknop.html('&#9656; Afspelen');
+            }
+        }
+    },
+    knopSpeed: {
+        init: function() {
+            $('#knop-snelheid').click(this.onPress);
+        },
+        onPress: function() {
+            if (video.getPlaybackRate() === 1) {
+                video.setPlaybackRate(4);
+            } else {
+                video.setPlaybackRate(1);
+            }
+        },
+        update: function() {
+            var speedknop = $('#knop-snelheid');
+            var rate = video.getPlaybackRate();
+            if (rate === 1) {
+                speedknop.html('&#9656;&#9656; Sneller afspelen');
+            } else {
+                speedknop.html('&#9656; Langzamer afspelen');
+            }
+        }
+    },
+    knopRouteMenu: {
+        init: function() {
+            // li (niet de a) krijgt een ul met alle routes beschikbaar (window.routes)
+            var menu = $('<ul></ul>');
+            for (var i in routes) {
+                var routeNaam = routes[i].naam;
+                var li = $('<li></li>');
+                if (header.route && routeNaam === header.route.naam) {
+                    li.addClass('current');
+                }
+                var action = function(evt) {
+                    header.setRoute(evt.data.routeNaam);
+                };
+                li.append($('<a></a>').html(routeNaam).addClass('klikbaar').click({routeNaam: i}, action));
+                menu.append(li);
+            }
+            var routeMenu = $('#route-menu').append(menu);
+            routeMenu.hover(function() {
+                menu.css('display', 'block');
+            }, function() {
+                menu.css('display', 'none');
+            });
+
+        },
+        updateRouteMenu: function() {
+            $('#route-menu ul li.current').removeClass('current');
+            var children = $('#route-menu ul').children('li');
+            for (var i = 0; i < children.length; i++) {
+                var child = $(children[i]);
+                var childRoute = child.children('a').html();
+                if (childRoute === header.route.naam) {
+                    // add current class
+                    child.addClass('current');
+                }
+            }
+        }
+    },
+    setRoute: function(routeNaam) {
+        this.route = routes[routeNaam];
+        this.labelRouteNaam.setRoute(this.route);
+        this.knopRouteMenu.updateRouteMenu();
+
+        if (grafiek)
+            grafiek.onRouteVeranderd();
+        if (video)
+            video.onRouteVeranderd();
+        if (kaart)
+            kaart.onRouteVeranderd();
+    },
+    setHuidigeTijd: function(tijd, ignore) {
+        this.huidigeTijd = tijd;
+        // video
+        if (ignore !== 'video') {
+            if (!video.onTijdVeranderd()) {
+                // de video kan niet geskipt worden.
+                return;
+            }
+        }
+        grafiek.onTijdVeranderd();
         kaart.onTijdVeranderd();
+        verhaal.onTijdVeranderd();
     }
-}
+};
+
 
 gpxparser = {
     parse_gpx: function(xml) {
@@ -602,7 +735,7 @@ gpxparser = {
         for (var j = 0; j < tags.length; j++) {
             var el = xml.getElementsByTagName(tags[j][0]);
             for (var i = 0; i < el.length; i++) {
-                var trackSegment = this.parse_trkseg(el[i], xml, tags[j][1]);
+                var trackSegment = this.parse_trkseg(el[i], tags[j][1]);
                 if (trackSegment.length > 0) {
                     coords.push(trackSegment);
                 }
@@ -610,7 +743,7 @@ gpxparser = {
         }
         return coords;
     },
-    parse_trkseg: function(line, xml, tag) {
+    parse_trkseg: function(line, tag) {
         var el = line.getElementsByTagName(tag);
         if (!el.length)
             return [];

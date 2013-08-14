@@ -22,7 +22,7 @@
                 <a class="klikbaar" id="knop-play-pause">&#9656; Afspelen</a>
             </li>
             <li>
-                <a class="klikbaar" id="knop-snelheid">&#9193; Sneller afspelen</a>
+                <a class="klikbaar" id="knop-snelheid">&#9656;&#9656; Sneller afspelen</a>
             </li>
             <li id="route-menu">
                 <a class="klikbaar" id="knop-route-menu">Bekijk ook andere routes &#x25BC;</a>
@@ -33,24 +33,25 @@
         </div>
         <div id="container">
             <div id="video" class="blok">
-                <div class="paddingborder">
-                    <video id="videotag" preload="metadata">
-                    </video>
-                    <div id="verhaal-inline">
-                        <p class="tekst">tekst tekst veel tekst en een gezicht van oscar</p>
-                        <img class="gezicht" src="data/amsterdam-1/faces/blij.jpg" />
-                    </div>
-                </div>
+                <video id="videotag" preload="auto">
+                </video>
             </div>
             <div id="kaart" class="blok">
-                <div class="paddingborder">
-                    <div id="kaartje">
-                    </div>
+                <div id="kaartje">
                 </div>
             </div>
         </div>
-        <div id="oproep">
-            <a href="http://google.nl/?q=oproep"><span>Maak hier jouw oproep aan je gemeente</span></a>
+        <div id="footer">
+            <div id="verhaal">
+                <img id="gezicht" src="data/amsterdam-1/faces/blij.jpg" />
+                <div id="wolk">
+                    <p id="verhaal-tekst">tekst tekst veel tekst en een gezicht van oscar</p>
+                    <img id="wolk-plaatje" src="data/wolk.png" width="263" height="232" />
+                </div>
+            </div>
+            <div id="oproep">
+                <a href="#" onclick="alert('hier moet nog een link komen!');">Maak hier jouw oproep aan je gemeente</a>
+            </div>
         </div>
 
     </body>

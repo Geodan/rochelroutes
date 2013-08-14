@@ -6,24 +6,38 @@ blauw    #00a9e0
 oranje   #e37222
 */
 
+/*
+linear-gradient, box-shadow, text-shadow = CCS3!
+niet door oude browsers ondersteund
+*/
 body {
     color: #333333;
-    font: 11px/11px arial,helvetica,sans-serif;
+    font: 15px/1.3 arial,helvetica,sans-serif;
     max-width: 957px;
     margin: 0 auto;
+    border: 1px solid #000000;
 }
 
 /* header */
+#header, #header ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background-color: #00a9e0;
+    background-image: linear-gradient(to bottom,
+        rgba(255, 255, 255, 0.20) 0%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.05) 51%,
+        rgba(255, 255, 255, 0.00) 100%);
+}
 #header {
-    background-color: #cccccc;
     float: left;
     width: 100%;
-    padding: 0;
-    margin: 0;
-    list-style: none outside none;
+    color: #ffffff;
 }
 #header li {
     float: left;
+    position: relative;
 }
 #header li#route-menu {
     float: right;
@@ -32,10 +46,10 @@ body {
     font-size: 14px;
     text-decoration:none;
     text-transform: uppercase;
-    
+
     display: block;
     border-right: 1px solid #FFFFFF;
-    padding: 0.6em 1.2em;
+    padding: 0.8em 1.5em;
 }
 #header li#route-menu a {
     border-right: none;
@@ -44,91 +58,106 @@ body {
     cursor: pointer;
 }
 #header a.klikbaar:hover {
-    background-color:#13A550;
+    background-color:#0092BF;
+    background-image: linear-gradient(to bottom, 
+        rgba(0, 0, 0, 0.00) 0%,
+        rgba(0, 0, 0, 0.10) 50%,
+        rgba(0, 0, 0, 0.15) 51%,
+        rgba(0, 0, 0, 0.20) 100%);
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.5) inset;
+
     color: #FFFFFF;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.75);
+}
+/* submenu */
+#header ul {
+    position: absolute;
+    top: 100%;
+    display: none;
+    width: 100%;
+    text-align: right;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+#header ul li {
+    float: none;
+    position: relative;
+    border-left: 1px solid #e37222;
+    border-right: 1px solid #e37222;
+    border-bottom: 1px solid #c9621e;
+}
+#header ul li.current a {
+    background-color: #6e2585 !important;
 }
 /* grafiek */
 #grafiek canvas {
     width: 100%;
     cursor: pointer;
 }
-/* container */
-#container {
-    margin: 0 10px;
-}
-/* paddingborder (in kolom) voor: border, padding en margin */
-.paddingborder {
-    background-color: #F8F8F8;
-    border: 1px solid #cccccc;
-    margin: 5px;
-    position: relative;
-}
 /* video */
-video {
+#video video {
     width: 100%;
-    height: 387px;
 }
-/* verhaal */
-#verhaal-inline {
-    background-color: #FFFFFF;
-    border: 1px solid #cccccc;
-    bottom: 0;
-    margin: 0;
-    padding: 15px;
-    position: absolute;
-    right: 0;
-    width: 50%;
-}
-#verhaal-inline .tekst {
-    bottom: 0;
-    left: 0;
-    position: absolute;
-    right: 170px;
-    vertical-align: bottom;
-}
-#verhaal-inline .gezicht {
-    float: right;
-    width: 108px;
-    height: 143px;
+#video, #video video {
+    height: 360px;
 }
 /* kaart */
 #kaartje {
-    width: 390px;
-    height: 390px;
+    width: 360px;
+    height: 360px;
 }
 /* oproep */
 #oproep {
-    margin: 0 auto;
-}
-#oproep span {
     text-align: center;
+}
+#oproep a {
+    display: inline-block;
     background-color: #13a550;
     background: linear-gradient(to bottom, rgba(19,165,80,0.75), #13a550);
-    display: block;
     padding: 1em 3em;
 }
-
-
+/* verhaal */
+#footer { position: relative; }
+#verhaal {
+    position: absolute;
+    right: 0;
+    top: -35px;
+}
+#verhaal #wolk {
+    position: absolute;
+    right: 40px;
+    top: -225px;
+}
+#verhaal #verhaal-tekst {
+    height: 100px;
+    left: 35px;
+    position: absolute;
+    top: 45px;
+    width: 175px;
+}
+#verhaal #gezicht {
+    margin-right: 25px;
+}
 /* http://alistapart.com/article/holygrail */
 #container {
-    min-width: 400px;
+    min-width: 370px;
     width: auto;
-    padding-left: 400px;
+    padding-left: 370px;
+    margin-top: 10px;
 }
 #container .blok {
     position: relative;
     float: left;
 }
-#video {
+#container #video {
     padding: 0;
     width: 100%;
 }
-#kaart {
-    width: 400px;
-    padding: 0;
-    right: 400px;
+#container #kaart {
+    width: 360px;
+    right: 370px;
     margin-left: -100%;
 }
-#oproep {
+#footer {
     clear: both;
+    padding-top: 10px;
 }
