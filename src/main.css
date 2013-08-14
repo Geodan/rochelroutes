@@ -128,11 +128,14 @@ body {
     top: -225px;
 }
 #verhaal #verhaal-tekst {
-    height: 100px;
-    left: 35px;
+    height: 115px;
+    left: 30px;
+    overflow: hidden;
     position: absolute;
-    top: 45px;
-    width: 175px;
+    text-align: center;
+    top: 35px;
+    width: 195px;
+    word-wrap: break-word;
 }
 #verhaal #gezicht {
     margin-right: 25px;

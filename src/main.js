@@ -2,7 +2,8 @@
  TODO:
  1. klikken op de kaart
  2. grafiek schaling wordt animatie
- 3. gezichten en verhaaltjes.
+ 3. verhaaltjes staan beschreven op grafiek.
+ 4. kaart wordt groter bij 'fullscreen' knop
  ------------------------------------------------------------------------------*/
 var routes = {
     'Amsterdam': {
@@ -580,6 +581,9 @@ function Verhaal() {
     this.gezicht = $('#gezicht');
     this.tijdZichtbaar = 10;
     this.gezichtExtensie = '.jpg';
+    this.fadeDuration = 200;
+    this.textFade = 200;
+    this.isTextFading = false;
 
     this.onRouteVeranderd();
 }
@@ -587,28 +591,47 @@ Verhaal.prototype.onRouteVeranderd = function() {
     var self = this;
     $.getJSON(header.route.verhaal).done(function(d) {
         self.data = d;
+        self.onTijdVeranderd();
     });
 };
 Verhaal.prototype.onTijdVeranderd = function() {
-    for (var i = 0; i < this.data.length; i++) {
+    var self = this;
+    for (var i = this.data.length - 1; i >= 0; i--) {
         var verhaal = this.data[i];
         if (header.huidigeTijd >= verhaal.time &&
                 header.huidigeTijd < verhaal.time + this.tijdZichtbaar) {
-            this.tekst.html(verhaal.text);
-            if (verhaal.face) {
-                this.gezicht.attr('src', header.route.faceDir + verhaal.face + this.gezichtExtensie);
+            // tekst fade
+            if (!this.isTextFading) {
+                if (this.tekst.html() && this.tekst.html() !== verhaal.text) {
+                    this.isTextFading = true;
+                    this.tekst.fadeOut(this.textFade, function() {
+                        self.tekst.html(verhaal.text).fadeIn(self.textFade, function() {
+                            self.isTextFading = false;
+                        });
+                    });
+                } else {
+                    this.tekst.html(verhaal.text);
+                }
             }
-            
-            
+            var face = '';
+            // trace back last face
+            for (var j = i; j >= 0; j--) {
+                if (this.data[j].face) {
+                    face = this.data[j].face;
+                    break;
+                }
+            }
+            this.gezicht.attr('src', face ? (header.route.faceDir + face + this.gezichtExtensie) : '');
+
+
             if (!this.verhaal.is(':visible')) {
-                this.verhaal.fadeIn(500);
+                this.verhaal.fadeIn(this.fadeDuration);
             }
             return;
         }
     }
     // geen verhaal.
-    var self = this;
-    this.verhaal.fadeOut(500, function() {
+    this.verhaal.fadeOut(this.fadeDuration, function() {
         self.tekst.html('');
         self.gezicht.attr('src', '');
     });
