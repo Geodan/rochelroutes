@@ -62,23 +62,9 @@ function GrafiekInfo() {
     this.animatieTijd = 200;
 }
 GrafiekInfo.prototype.setInformatie = function(x, y, waarde, kader) {
-    var color = {red: 0, green: 0, blue: 0}, puntGeel = 25000, helderheid = 180;
-    // het punt waarbij groen en rood evenveel zijn ( dus geen schone en geen vieze lucht) 
-    if (waarde < puntGeel) { // tussen groen en geel
-        color.green = helderheid;
-        color.red = Math.round(Math.max(0, waarde * helderheid / puntGeel));
-    } else {
-        color.red = helderheid;
-        color.green = Math.round(Math.max(0, (2 * puntGeel - waarde) * helderheid / puntGeel));
-    }
-    color.html = 'rgb(' + color.red + ',' + color.green + ',' + color.blue + ')';
-    this.elem.css('color', color.html);
-
-    this.elem.html(formatNumber(waarde, 4) + " " + this.eenheid);
-
     // positionering
     var w = this.elem.outerWidth(), h = this.elem.outerHeight();
-    var margin = 5, posX, posY;
+    var margin = 10, posX, posY;
     if (x - w - margin >= kader.left) {
         posX = x - w - margin;
     } else {
@@ -88,14 +74,17 @@ GrafiekInfo.prototype.setInformatie = function(x, y, waarde, kader) {
         posY = kader.top + margin;
     } else if (y + h + margin >= kader.bottom) {
         posY = y - h - margin;
-
     } else {
         posY = y + margin;
     }
 
-    this.elem.css('left', posX).css('top', posY);
+    var suffix = '';
+    if (y < kader.top) {
+        suffix = '!';
+    }
 
-
+    this.elem.html(formatNumber(waarde, 4) + " " + this.eenheid + suffix);
+    this.elem.animate({left: posX, top: posY}, 'fast');
 };
 GrafiekInfo.prototype.setZichtbaar = function(zichtbaar) {
     this.zichtbaar = zichtbaar;
@@ -130,7 +119,13 @@ Grafiek.prototype.getPadding = function(c) {
         c.font = '11px arial';
         c.textAlign = 'right';
         c.textBaseline = 'middle';
-        padding.left += c.measureText(formatNumber(this.hoogste('value'), 3)).width;
+        var number = formatNumber(this.hoogste('value'), 3);
+        if (c.measureText) {
+            padding.left += c.measureText(number).width;
+        } else {
+            // we maken gebruik van excanvas. Het heeft geen ondersteuning voor text dus hebben we ook geen padding nodig.
+            padding.left += 15;
+        }
     }
     return padding;
 };
@@ -162,7 +157,7 @@ Grafiek.prototype.onGrafiekGeklikt = function(evt) {
     header.setHuidigeTijd(x * (max - min) / breedte + min, 'grafiek');
 
     self.grafiekInfo.setZichtbaar(true);
-    evt.stopPropagation();
+    //evt.stopPropagation();
 };
 Grafiek.prototype.onTijdVeranderd = function() {
     // grafiek opnieuw tekenen
@@ -193,7 +188,7 @@ Grafiek.prototype.waardeNaarTijd = function(waarde) {
             if (i > 0) {
                 var t1 = this.data[i].time;
                 var t0 = this.data[i - 1].time;
-                // return i-1 + kommagetal hoeveel procent waarde bij t2 zit;
+                // return i - 1 + kommagetal hoeveel procent waarde bij t2 zit;
                 return i - 1 + (waarde - t0) / (t1 - t0);
             }
             return i;
@@ -201,7 +196,7 @@ Grafiek.prototype.waardeNaarTijd = function(waarde) {
     }
 };
 Grafiek.prototype.getSchaal = function() {
-    var xMin = this.laagste('time'), xMax = this.hoogste('time'), yMin = 0, yMax = 40000;
+    var xMin = this.laagste('time'), xMax = this.hoogste('time'), yMin = 0, yMax = 50000;
     return {
         minX: xMin, maxX: xMax, distX: xMax - xMin,
         minY: yMin, maxY: yMax, distY: yMax - yMin};
@@ -273,7 +268,9 @@ Grafiek.prototype.tekenGrafiek = function() {
             c.lineTo(w, y);
             c.stroke();
 
-            c.fillText(formatNumber(schaal.minY + schaal.distY * i / aantalStrepen, 3), -3, y);
+            if (c.fillText) {
+                c.fillText(formatNumber(schaal.minY + schaal.distY * i / aantalStrepen, 3), -3, y);
+            }
         }
 
         // clip
@@ -392,9 +389,7 @@ Video.prototype.onRouteVeranderd = function() {
     var vid = $('#videotag');
     vid.empty();
     for (var i = 0; i < header.route.videosrc.length; i++) {
-        $("<source />", {
-            'src': header.route.videosrc[i]
-        }).appendTo(vid);
+        vid.append($('<source>').attr('src', header.route.videosrc[i]));
     }
     vid.get(0).load();
 };
@@ -407,8 +402,11 @@ Video.prototype.onPause = function(evt) {
     var self = evt.data.self;
     self.playUpdate.update();
 };
-Video.prototype.onTimeUpdate = function() {
-    header.setHuidigeTijd($('#videotag').get(0).currentTime, 'video');
+Video.prototype.onTimeUpdate = function(evt) {
+    if (!this.ignoreTimeUpdate) {
+        var self = evt.data.self;
+        header.setHuidigeTijd(self.getCurrentTime(), 'video');
+    }
 };
 Video.prototype.onVerhaalBegint = function() {
     if (this.alleenVerhaaltjes) {
@@ -464,15 +462,67 @@ Video.prototype.setPlaybackRate = function(playbackRate) {
 Video.prototype.getPlaybackRate = function() {
     return $('#videotag').get(0).playbackRate;
 };
-Video.prototype.currentTime = function(currentTime) {
-    if (typeof currentTime === 'number') {
-        $('#videotag').get(0).currentTime = currentTime;
-    }
+Video.prototype.setCurrentTime = function(currentTime) {
+    $('#videotag').get(0).currentTime = currentTime;
+};
+Video.prototype.getCurrentTime = function() {
     return $('#videotag').get(0).currentTime;
 };
 Video.prototype.onTijdVeranderd = function() {
-    return this.currentTime(header.huidigeTijd) === header.huidigeTijd;
+    this.ignoreTimeUpdate = true;
+    this.setCurrentTime(header.huidigeTijd);
+    this.ignoreTimeUpdate = false;
+    return this.getCurrentTime() === header.huidigeTijd;
 };
+
+
+function KaartFullScreen(onVergroot, onVerklein, context) {
+    this.onVergroot = onVergroot;
+    this.onVerklein = onVerklein;
+    this.context = context;
+
+    this.button = $('<a></a>').attr('href', '#').appendTo(
+            $('<div></div>').addClass('leaflet-control-size leaflet-bar leaflet-control')
+            .appendTo($('#kaartje .leaflet-control-container .leaflet-top.leaflet-right'))
+            );
+
+    var button = this.button.get(0);
+    L.DomEvent
+            .on(button, 'click', L.DomEvent.stopPropagation)
+            .on(button, 'mousedown', L.DomEvent.stopPropagation)
+            .on(button, 'dblclick', L.DomEvent.stopPropagation)
+            .on(button, 'click', L.DomEvent.preventDefault)
+            .on(button, 'click', this.onClick, this);
+
+    this.setKlein(true);
+}
+KaartFullScreen.prototype.setKlein = function(klein) {
+    this.isKlein = klein;
+    var title, buttonClass, removeClass, html, fn;
+    if (klein) {
+        title = 'Maak groter';
+        buttonClass = 'leaflet-control-enlarge';
+        removeClass = 'leaflet-control-shrink';
+        html = '<img src="data/enlarge.png" />';
+        fn = this.onVerklein;
+    } else {
+        title = 'Maak kleiner';
+        buttonClass = 'leaflet-control-shrink';
+        removeClass = 'leaflet-control-enlarge';
+        html = '<img src="data/shrink.png" />';
+        fn = this.onVergroot;
+    }
+    this.button.attr('title', title).html(html);
+    this.button.removeClass(removeClass);
+    this.button.addClass(buttonClass);
+    fn.call(this.context);
+};
+KaartFullScreen.prototype.onClick = function(evt) {
+    this.setKlein(!this.isKlein);
+    L.DomEvent.stopPropagation(evt);
+    L.DomEvent.preventDefault(evt);
+};
+
 
 // Kaart
 function Kaart() {
@@ -490,6 +540,19 @@ function Kaart() {
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
     }).addTo(this.map);
+
+    var self = this;
+    new KaartFullScreen(function() {
+        $('#kaart').animate({width: this.groot.width}, this.kaartOptions);
+    }, function() {
+        $('#kaart').animate({width: this.klein.width}, this.kaartOptions);
+    }, {
+        klein: {width: $('#kaart').width()},
+        groot: {width: 600},
+        kaartOptions: {duration: 500, complete: function() {
+                self.map.invalidateSize();
+                grafiek.tekenGrafiek();
+            }}});
 
     this.map.on('movestart', this.onMoveStart, this);
     this.map.on('moveend', this.onMoveEnd, this);
@@ -565,8 +628,34 @@ Kaart.prototype.onMoveEnd = function() {
         self.bezigCooldown = null;
     }, 5000);
 };
+L.LatLng.prototype.isBinnen = function(latlng0, latlng1) {
+    var bounds = new L.LatLngBounds([latlng0, latlng1]);
+    return bounds.contains(this);
+};
 Kaart.prototype.onRouteClick = function(evt) {
-    alert('burp');
+    return;
+    // TODO
+    var latlng = evt.latlng;
+    for (var i = 0; i < this.locaties.length; i++) {
+        for (var j = 0; j < this.locaties[i].length; j++) {
+            var latlng0 = this.locaties[i][j];
+            var next = this.next(i, j);
+            if (next === null) {
+                if (latlng.lat === latlng0.lat && latlng.lon === latlng0.lon) {
+                    var tijd = (latlng0.tijd - this.locaties[0][0].tijd) / 1000;
+                    header.setHuidigeTijd(tijd);
+                    return;
+                }
+            } else {
+                var latlng1 = this.locaties[next.segment][next.punt];
+                if (latlng.isBinnen(latlng0, latlng1)) {
+                    var tijd = (latlng0.tijd - this.locaties[0][0].tijd) / 1000;
+                    header.setHuidigeTijd(tijd);
+                    return;
+                }
+            }
+        }
+    }
 };
 // marker hulpmethodes
 Kaart.prototype.updateLocatie = function() {
@@ -610,19 +699,13 @@ Kaart.prototype.updateLocatie = function() {
     }
 };
 // returnt het volgende of vorige punt na i,j in locaties[][]
-Kaart.prototype.next = function(i, j, vorige) {
-    if (vorige) {
-        if (j - 1 >= 0) {
-            return {segment: i, punt: j - 1};
-        } else {
-            return {segment: i - 1, punt: this.locaties[i].length - 1};
-        }
+Kaart.prototype.next = function(i, j) {
+    if (j + 1 < this.locaties[i].length) {
+        return {segment: i, punt: j + 1};
+    } else if (i + 1 < this.locaties.length) {
+        return {segment: i + 1, punt: 0};
     } else {
-        if (this.locaties[i].length > j + 1) {
-            return {segment: i, punt: j + 1};
-        } else {
-            return {segment: i + 1, punt: 0};
-        }
+        return null;
     }
 };
 // linear interpolatie van punt0 tot punt1
@@ -641,6 +724,11 @@ Kaart.prototype.updateMarker = function() {
         var loc2 = this.next(loc1.segment, loc1.punt);
 
         var punt1 = this.locaties[loc1.segment][loc1.punt];
+        if (loc2 === null) {
+            this.marker.setLatLng(punt1);
+            return;
+        }
+
         var punt2 = this.locaties[loc2.segment][loc2.punt];
 
         var beginTijd = this.locaties[0][0].tijd;
@@ -875,6 +963,10 @@ header = {
         }
     },
     setHuidigeTijd: function(tijd, ignore) {
+        var maxTijd = grafiek.hoogste('time');
+        if (tijd > maxTijd) {
+            tijd = maxTijd;
+        }
         this.huidigeTijd = tijd;
         // video
         if (ignore !== 'video' && !video.onTijdVeranderd()) {
