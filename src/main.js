@@ -1,26 +1,24 @@
 /* -----------------------------------------------------------------------------
  -testen in verschillende browsers (firefox, chrome, IE8 en IE9: functionaliteit en design)
  TODO:
- - knop die de kaart stuk groter maakt (en een knop om weer terug te gaan)
  - share buttons, twitter, facebook
  - made by Geodan
- - klikken op de kaart
  ------------------------------------------------------------------------------*/
 var routes = [
-    new Route('Amsterdam', 'Oscar\'s route van Amsterdam', 'data/amsterdam-1/'),
-    new Route('Test', 'Test route van niks eigenlijk....', 'data/amsterdam-1/')
+    new Route('Amsterdam', 'Oscar\'s route van Amsterdam', 'amsterdam-1/'),
+    new Route('Test', 'Test route van niks eigenlijk....', 'amsterdam-1/')
 ];
 function Route(naam, titel, pad) {
+    pad = 'data/' + pad;
     this.naam = naam;
     this.titel = titel;
-    this.pad = pad;
-    this.grafiek = this.pad + 'meetresultaten.json';
-    this.kaart = this.pad + 'track.gpx';
-    this.verhaal = this.pad + 'verhaal.json';
-    this.faceDir = this.pad + 'faces/';
+    this.grafiek = pad + 'meetresultaten.json';
+    this.kaart = pad + 'track.gpx';
+    this.verhaal = pad + 'verhaal.json';
+    this.faceDir = pad + 'faces/';
     this.videosrc = [
-        this.pad + 'movie.mp4',
-        this.pad + 'movie.webm'
+        pad + 'movie.mp4',
+        pad + 'movie.webm'
     ];
 }
 
@@ -194,28 +192,29 @@ Grafiek.prototype.waardeNaarTijd = function(waarde) {
             return i;
         }
     }
+    return this.data.length - 1;
 };
 Grafiek.prototype.getSchaal = function() {
     var xMin = this.laagste('time'), xMax = this.hoogste('time'), yMin = 0, yMax = 50000;
     return {
         minX: xMin, maxX: xMax, distX: xMax - xMin,
         minY: yMin, maxY: yMax, distY: yMax - yMin};
-    /*
-     if (this.data && this.data.length > 0) {
-     var hoogsteWaarde = false, huidigeIndex = Math.round(this.waardeNaarTijd(header.huidigeTijd));
-     for (var i = huidigeIndex - 10; i <= huidigeIndex + 10; i++) {
-     if (i >= 0 && i < this.data.length) {
-     var waarde = this.data[i].value;
-     if (hoogsteWaarde === false || waarde > hoogsteWaarde) {
-     hoogsteWaarde = waarde;
-     }
-     }
-     }
-     if (hoogsteWaarde !== false && hoogsteWaarde > yMax) {
-     yMax = hoogsteWaarde;
-     }
-     }
-     */
+
+//    if (this.data && this.data.length > 0) {
+//        var hoogsteWaarde = false, huidigeIndex = Math.round(this.waardeNaarTijd(header.huidigeTijd));
+//        for (var i = huidigeIndex - 10; i <= huidigeIndex + 10; i++) {
+//            if (i >= 0 && i < this.data.length) {
+//                var waarde = this.data[i].value;
+//                if (hoogsteWaarde === false || waarde > hoogsteWaarde) {
+//                    hoogsteWaarde = waarde;
+//                }
+//            }
+//        }
+//        if (hoogsteWaarde !== false && hoogsteWaarde > yMax) {
+//            yMax = hoogsteWaarde;
+//        }
+//    }
+
 };
 // tekenen
 Grafiek.prototype.tekenGrafiek = function() {
@@ -355,10 +354,10 @@ Grafiek.prototype.tekenGrafiek = function() {
         var waarde;
         if (Math.floor(index + 1) >= this.data.length) {
             // laatste punt
-            var waarde = this.data[Math.floor(index)].value;
+            waarde = this.data[Math.floor(index)].value;
         } else {
             var d0 = this.data[Math.floor(index)].value, d1 = this.data[Math.floor(index) + 1].value;
-            var waarde = d0 + (d1 - d0) * (index % 1); // * kommagetal
+            waarde = d0 + (d1 - d0) * (index % 1); // * kommagetal
         }
         var y = h * (waarde - schaal.maxY) / -schaal.distY;
         var kader = {left: padding.left, top: padding.top, right: w + padding.left, bottom: h + padding.top};
@@ -570,34 +569,32 @@ Kaart.prototype.onRouteVeranderd = function() {
 };
 Kaart.prototype.onGPXLoaded = function(data) {
     this.locaties = gpxparser.parse_gpx(data);
-    this.locatie = {segment: 0, punt: 0};
-    if (this.locatieLines) {
-        for (var i = 0; i < this.locatieLines.length; i++) {
-            this.map.removeLayer(this.locatieLines[i]);
-        }
-    }
-    this.locatieLines = [];
-    for (var i = 0; i < this.locaties.length; i++) {
-        this.locatieLines.push(new L.polyline(this.locaties[i], this.options.line).on('click', this.onRouteClick, this).addTo(this.map));
-    }
-    if (this.marker) {
-        this.marker.setLatLng(this.locaties[0][0]);
-        this.marker.setRadius(this.options.marker.radius);
-        // push to the top layer
+    this.locatie = 0;
+    if (this.locaties.length === 0) {
+        this.map.removeLayer(this.locatieLijn);
         this.map.removeLayer(this.marker);
-        this.map.addLayer(this.marker);
     } else {
-        this.marker = new L.CircleMarker(this.locaties[0][0], this.options.marker).setRadius(this.options.marker.radius).addTo(this.map);
-    }
-    if (this.locaties.length > 0) {
+        if (this.locatieLijn) {
+            this.map.removeLayer(this.locatieLijn);
+        }
+        this.locatieLijn = new L.polyline(this.locaties, this.options.line)
+                .on('click', this.onRouteClick, this)
+                .addTo(this.map);
+        if (this.marker) {
+            this.marker.setLatLng(this.locaties[this.locatie]);
+            this.marker.setRadius(this.options.marker.radius);
+            // push to the top layer
+            this.map.removeLayer(this.marker);
+            this.map.addLayer(this.marker);
+        } else {
+            this.marker = new L.CircleMarker(this.locaties[this.locatie], this.options.marker).setRadius(this.options.marker.radius).addTo(this.map);
+        }
         this.beweegKaartAlsNodig();
     }
 };
 Kaart.prototype.onTijdVeranderd = function() {
     // kaart (marker verplaatsen + evt. kaart bewegen)
-    if (this.locaties && this.locatie.segment >= 0 && this.locatie.punt >= 0
-            && this.locatie.segment < this.locaties.length
-            && this.locatie.punt < this.locaties[this.locatie.segment].length) {
+    if (this.locaties && this.locatie >= 0 && this.locatie < this.locaties.length) {
         this.updateMarker();
         this.beweegKaartAlsNodig();
     }
@@ -632,78 +629,117 @@ L.LatLng.prototype.isBinnen = function(latlng0, latlng1) {
     var bounds = new L.LatLngBounds([latlng0, latlng1]);
     return bounds.contains(this);
 };
-Kaart.prototype.onRouteClick = function(evt) {
-    return;
-    // TODO
-    var latlng = evt.latlng;
-    for (var i = 0; i < this.locaties.length; i++) {
-        for (var j = 0; j < this.locaties[i].length; j++) {
-            var latlng0 = this.locaties[i][j];
-            var next = this.next(i, j);
-            if (next === null) {
-                if (latlng.lat === latlng0.lat && latlng.lon === latlng0.lon) {
-                    var tijd = (latlng0.tijd - this.locaties[0][0].tijd) / 1000;
-                    header.setHuidigeTijd(tijd);
-                    return;
-                }
-            } else {
-                var latlng1 = this.locaties[next.segment][next.punt];
-                if (latlng.isBinnen(latlng0, latlng1)) {
-                    var tijd = (latlng0.tijd - this.locaties[0][0].tijd) / 1000;
-                    header.setHuidigeTijd(tijd);
-                    return;
-                }
-            }
+// L.LineUtil.pointToSegmentDistance
+Kaart.prototype.pointToSegmentDistance = function(p, p0, p1) {
+    var x = p0.x, y = p0.y,
+            dx = p1.x - x, dy = p1.y - y,
+            dot = dx * dx + dy * dy, t;
+
+    if (dot > 0) {
+        t = ((p.x - x) * dx + (p.y - y) * dy) / dot;
+
+        if (t > 1) {
+            x = p1.x;
+            y = p1.y;
+        } else if (t > 0) {
+            x += dx * t;
+            y += dy * t;
         }
     }
+
+    dx = p.x - x;
+    dy = p.y - y;
+
+    return {dist: dx * dx + dy * dy, x: x, y: y};
+};
+Kaart.prototype.puntOpLijn = function(evt) {
+    var point = evt.layerPoint;
+    var points = this.locatieLijn._originalPoints;
+    var minDistance = false, minIndex = 0;
+    for (var i = 0; i + 1 < points.length; i++) {
+        var ptDist = Kaart.prototype.pointToSegmentDistance(point, points[i], points[i + 1]);
+        if (minDistance === false || ptDist.dist < minDistance.dist) {
+            minDistance = ptDist;
+            minIndex = i;
+        }
+    }
+    if (minDistance === false) {
+        return null;
+    }
+
+    var p = minDistance,
+            p0 = points[minIndex],
+            p1 = points[minIndex + 1];
+
+    var percentageX = (p.x - p0.x) / (p1.x - p0.x);
+    var percentageY = (p.y - p0.y) / (p1.y - p0.y);
+
+    if (p0.x === p1.x) {
+        // percentageX = NaN
+        percentageX = percentageY; // laat x niet mee tellen
+    }
+    if (p0.y === p1.y) {
+        percentageY = percentageX;
+        // if (p0.y === p1.y && p0.x === p1.x)
+        if (p0.x === p1.x) {
+            return minIndex;
+        }
+    }
+    // gemiddelde
+    var percentage = (percentageX + percentageY) / 2;
+    return minIndex + percentage;
+};
+Kaart.prototype.onRouteClick = function(evt) {
+    var self = this;
+
+    var index = self.puntOpLijn(evt);
+    if (index === null) {
+        return;
+    }
+    var waarde, indexFloor = Math.floor(index);
+    if (indexFloor + 1 < this.locaties.length) {
+        var t0 = this.locaties[indexFloor].tijd,
+                t1 = this.locaties[indexFloor + 1].tijd;
+        waarde = t0 + (t1 - t0) * (index % 1); // * kommagetal
+    } else {
+        // laatste punt
+        waarde = this.locaties[indexFloor].tijd;
+    }
+    var tijd = (waarde - this.locaties[0].tijd) / 1000;
+    header.setHuidigeTijd(tijd, 'kaart');
 };
 // marker hulpmethodes
 Kaart.prototype.updateLocatie = function() {
-    var beginTijd = this.locaties[0][0].tijd;
-    var locatie = this.locaties[this.locatie.segment][this.locatie.punt];
-    var millitijd = header.huidigeTijd * 1000;
-    if (locatie.tijd - beginTijd < millitijd) {
+    var tijdHuidig = this.locaties[0].tijd + header.huidigeTijd * 1000;
+    var t = this.locaties[this.locatie].tijd;
+    if (t < tijdHuidig) {
         // verder in de tijd
-        var vorigeI = this.locatie.segment, vorigeJ = this.locatie.punt;
-        for (var i = this.locatie.segment; i < this.locaties.length; i++) {
-            var j = (i === this.locatie.segment) ? this.locatie.punt : 0;
-            for (; j < this.locaties[i].length; j++) {
-                // ga elk punt af vanaf seg,pt tot het laatste punt
-                if (this.locaties[i][j].tijd - beginTijd > millitijd && this.locaties[vorigeI][vorigeJ].tijd - beginTijd < millitijd) {
-                    this.locatie.segment = vorigeI;
-                    this.locatie.punt = vorigeJ;
-                    return;
-                } else {
-                    vorigeI = i;
-                    vorigeJ = j;
-                }
+        for (var i = this.locatie; i + 1 < this.locaties.length; i++) {
+            var t0 = this.locaties[i].tijd;
+            var t1 = this.locaties[i + 1].tijd;
+            if (tijdHuidig >= t0 && tijdHuidig < t1) {
+                this.locatie = i;
+                return;
             }
         }
-        this.locatie.segment = this.locaties.length - 1;
-        this.locatie.punt = this.locaties[this.locatie.segment].length - 1;
-    } else if (locatie.tijd - beginTijd > millitijd) {
+        this.locatie = this.locaties.length - 1;
+    } else if (t > tijdHuidig) {
         // terug in de tijd
-        for (var i = this.locatie.segment; i >= 0; i--) {
-            var j = (i === this.locatie.segment) ? this.locatie.punt : this.locaties[i].length - 1;
-            for (; j >= 0; j--) {
-                // ga elk punt af vanaf seg,pt tot 0,0
-                if (this.locaties[i][j].tijd - beginTijd < millitijd) {
-                    this.locatie.segment = i;
-                    this.locatie.punt = j;
-                    return;
-                }
+        for (var i = this.locatie - 1; i >= 0; i--) {
+            var t0 = this.locaties[i].tijd;
+            var t1 = this.locaties[i + 1].tijd;
+            if (tijdHuidig >= t0 && tijdHuidig < t1) {
+                this.locatie = i;
+                return;
             }
         }
-        this.locatie.segment = 0;
-        this.locatie.punt = 0;
+        this.locatie = 0;
     }
 };
 // returnt het volgende of vorige punt na i,j in locaties[][]
-Kaart.prototype.next = function(i, j) {
-    if (j + 1 < this.locaties[i].length) {
-        return {segment: i, punt: j + 1};
-    } else if (i + 1 < this.locaties.length) {
-        return {segment: i + 1, punt: 0};
+Kaart.prototype.next = function(i) {
+    if (i + 1 < this.locaties.length) {
+        return i + 1;
     } else {
         return null;
     }
@@ -720,24 +756,20 @@ Kaart.prototype.interpolate = function(doelWaarde, waarde0, waarde1, punt0, punt
 Kaart.prototype.updateMarker = function() {
     if (this.marker) {
         this.updateLocatie();
-        var loc1 = this.locatie;
-        var loc2 = this.next(loc1.segment, loc1.punt);
-
-        var punt1 = this.locaties[loc1.segment][loc1.punt];
-        if (loc2 === null) {
+        var punt1 = this.locaties[this.locatie];
+        if (this.locatie + 1 >= this.locaties.length) {
             this.marker.setLatLng(punt1);
             return;
+        } else {
+            var punt2 = this.locaties[this.locatie + 1];
+
+            var beginTijd = this.locaties[0].tijd;
+            var huidigeTijdMillis = header.huidigeTijd * 1000;
+
+            var locInterpoleerd = this.interpolate(huidigeTijdMillis,
+                    punt1.tijd - beginTijd, punt2.tijd - beginTijd, punt1, punt2);
+            this.marker.setLatLng(locInterpoleerd);
         }
-
-        var punt2 = this.locaties[loc2.segment][loc2.punt];
-
-        var beginTijd = this.locaties[0][0].tijd;
-        var huidigeTijdMillis = header.huidigeTijd * 1000;
-
-        var locInterpoleerd = this.interpolate(huidigeTijdMillis,
-                punt1.tijd - beginTijd, punt2.tijd - beginTijd, punt1, punt2); // tussen 0 en 1
-
-        this.marker.setLatLng(locInterpoleerd);
     }
 };
 Kaart.prototype.beweegKaartAlsNodig = function() {
@@ -861,6 +893,7 @@ Verhaal.prototype.kijktVerhaal = function() {
     return (typeof this.huidigVerhaal === 'number');
 };
 
+
 header = {
     huidigeTijd: 0,
     route: routes['Amsterdam'],
@@ -951,13 +984,12 @@ header = {
 
                 if (grafiek)
                     grafiek.onRouteVeranderd();
-                if (video)
-                    video.onRouteVeranderd();
+                if (verhaal)
+                    verhaal.onRouteVeranderd();
                 if (kaart)
                     kaart.onRouteVeranderd();
-                if (verhaal) {
-                    verhaal.onRouteVeranderd();
-                }
+                if (video)
+                    video.onRouteVeranderd();
                 return;
             }
         }
@@ -989,7 +1021,7 @@ gpxparser = {
             for (var i = 0; i < el.length; i++) {
                 var trackSegment = this.parse_trkseg(el[i], tags[j][1]);
                 if (trackSegment.length > 0) {
-                    coords.push(trackSegment);
+                    coords = coords.concat(trackSegment);
                 }
             }
         }
@@ -1006,7 +1038,7 @@ gpxparser = {
             ll.hoogte = null;
             tmp = el[i].getElementsByTagName('time');
             if (tmp.length > 0) {
-                ll.tijd = new Date(Date.parse(tmp[0].textContent));
+                ll.tijd = new Date(Date.parse(tmp[0].textContent)).getTime();
             }
             tmp = el[i].getElementsByTagName('ele');
             if (tmp.length > 0) {
