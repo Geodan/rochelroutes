@@ -2,54 +2,48 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <!--meta http-equiv="content-type" content="text/html; charset=UTF8" /-->
         <title>Rochelroutes</title>
 
-        <!--[if lte IE 8]> <script type="text/javascript" src="src/excanvas.js"></script> <![endif]-->
-
         <link rel="stylesheet" href="src/leaflet/leaflet.css" />
-        <!--[if lte IE 8]> <link rel="stylesheet" href="src/leaflet/leaflet.ie.css" /> <![endif]-->
+
+        <!--[if lte IE 8]>
+            <link rel="stylesheet" href="src/leaflet/leaflet.ie.css" />
+            <script type="text/javascript" src="src/excanvas.js"></script>
+        <![endif]-->
+
         <link rel="stylesheet" type="text/css" href="src/main.css">
 
         <script src="src/jquery.js"></script>
-        <script src="src/leaflet/leaflet.js"></script>
+        <script src="src/leaflet/leaflet-src.js"></script>
         <script src="src/main.js"></script>
     </head>
     <body>
         <ul id="header">
-            <li>
-                <a id="routenaam">&nbsp;</a>
-            </li>
-            <li>
-                <a class="klikbaar" id="knop-play-pause">&#9656; Afspelen</a>
-            </li>
-            <li>
-                <a class="klikbaar" id="knop-snelheid">&#9656;&#9656; Sneller afspelen</a>
-            </li>
-            <li id="route-menu">
-                <a class="klikbaar" id="knop-route-menu">Bekijk ook andere routes &#x25BC;</a>
-            </li>
+            <li><a id="routenaam">&nbsp;</a></li>
+            <li><a class="klikbaar" id="knop-play-pause" href="#">&#9656; Afspelen</a></li>
+            <li><a class="klikbaar" id="knop-snelheid" href="#">&#9656;&#9656; Sneller afspelen</a></li>
+            <li id="route-menu"><a class="klikbaar" id="knop-route-menu" href="#">Bekijk ook andere routes &#x25BC;</a></li>
         </ul>
         <div id="container">
-            <div id="kaart" class="blok">
-                <div id="kaartje">
+            <div id="wrapper-kaart">
+                <div id="kaart">
                 </div>
             </div>
-            <div id="video" class="blok">
-                <video id="videotag" preload="metadata">
+            <div id="wrapper-video">
+                <video id="video" preload="metadata">
                 </video>
             </div>
         </div>
         <div id="footer">
-            <div id="grafiek">
-                <canvas id="canvas" width="800" height="125"></canvas>
+            <div id="wrapper-grafiek">
+                <canvas id="grafiek" width="800" height="125"></canvas>
                 <span id="grafiekinfo"></span>
             </div>
             <div id="verhaal" style="display: none;">
-                <img id="gezicht" src="" />
+                <img id="verhaal-gezicht" src="" />
                 <div id="wolk">
                     <p id="verhaal-tekst"></p>
-                    <img id="wolk-plaatje" src="data/wolk.png" width="263" height="232" />
+                    <img id="verhaal-wolk" src="data/wolk.png" width="263" height="232" />
                 </div>
             </div>
             <div id="oproep">

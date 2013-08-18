@@ -47,10 +47,10 @@ $(document).ready(function() {
     header.knopSpeed.init();
     header.knopRouteMenu.init();
 
-    grafiek = new Grafiek();
-    verhaal = new Verhaal();
-    kaart = new Kaart();
-    video = new Video(header.knopPlay, header.knopSpeed);
+    grafiek = new Grafiek('#grafiek');
+    verhaal = new Verhaal('#verhaal', '#verhaal-tekst', '#verhaal-gezicht');
+    kaart = new Kaart('kaart');
+    video = new Video('#video', header.knopPlay, header.knopSpeed);
 });
 
 function GrafiekInfo() {
@@ -100,12 +100,13 @@ GrafiekInfo.prototype.setZichtbaar = function(zichtbaar) {
 
 
 // Grafiek
-function Grafiek() {
+function Grafiek(selector) {
+    this.selector = selector;
     this.data = null;
     this.grafiekInfo = new GrafiekInfo();
 
     var self = this;
-    $('#canvas').resize(function() {
+    $(this.selector).resize(function() {
         self.tekenGrafiek();
     }).on('click', {self: self}, self.onGrafiekGeklikt);
 
@@ -143,7 +144,7 @@ Grafiek.prototype.onRouteVeranderd = function() {
 };
 Grafiek.prototype.onGrafiekGeklikt = function(evt) {
     var self = evt.data.self;
-    var canvas = $('#canvas');
+    var canvas = $(self.selector);
     var offset = canvas.offset();
     var c = canvas.get(0).getContext('2d');
     var padding = self.getPadding(c);
@@ -229,8 +230,8 @@ Grafiek.prototype.tekenGrafiek = function() {
             '#e37222', '#f3c4a2'
         ]
     };
-    var graph = $('#canvas');
-    graph.attr('width', $('#grafiek').width());
+    var graph = $(this.selector);
+    graph.attr('width', graph.parent().width());
     var c = graph.get(0).getContext('2d');
 
     var hoogteVerhaal = 15;
@@ -351,13 +352,14 @@ Grafiek.prototype.tekenGrafiek = function() {
         // snijpunt
 
         var index = this.waardeNaarTijd(header.huidigeTijd);
+        var indexFloor = Math.floor(index);
         var waarde;
-        if (Math.floor(index + 1) >= this.data.length) {
-            // laatste punt
-            waarde = this.data[Math.floor(index)].value;
-        } else {
-            var d0 = this.data[Math.floor(index)].value, d1 = this.data[Math.floor(index) + 1].value;
+        if (indexFloor + 1 < this.data.length) {
+            var d0 = this.data[indexFloor].value, d1 = this.data[indexFloor + 1].value;
             waarde = d0 + (d1 - d0) * (index % 1); // * kommagetal
+        } else {
+            // laatste punt
+            waarde = this.data[indexFloor].value;
         }
         var y = h * (waarde - schaal.maxY) / -schaal.distY;
         var kader = {left: padding.left, top: padding.top, right: w + padding.left, bottom: h + padding.top};
@@ -367,7 +369,8 @@ Grafiek.prototype.tekenGrafiek = function() {
 
 
 // Video
-function Video(playUpdate, alleenVerhaaltjesUpdate) {
+function Video(selector, playUpdate, alleenVerhaaltjesUpdate) {
+    this.selector = selector;
     // alleen de verhaaltjes op normale snelheid, en de rest versneld laten zien?
     this.alleenVerhaaltjes = false;
     this.snel = 4;
@@ -376,7 +379,7 @@ function Video(playUpdate, alleenVerhaaltjesUpdate) {
     this.alleenVerhaaltjesUpdate = alleenVerhaaltjesUpdate;
 
     var self = this;
-    $('#videotag').on({
+    $(this.selector).on({
         playing: self.onPlay,
         pause: self.onPause,
         timeupdate: self.onTimeUpdate,
@@ -385,7 +388,7 @@ function Video(playUpdate, alleenVerhaaltjesUpdate) {
     this.onRouteVeranderd();
 }
 Video.prototype.onRouteVeranderd = function() {
-    var vid = $('#videotag');
+    var vid = $(this.selector);
     vid.empty();
     for (var i = 0; i < header.route.videosrc.length; i++) {
         vid.append($('<source>').attr('src', header.route.videosrc[i]));
@@ -447,25 +450,25 @@ Video.prototype.togglePlaying = function(evt) {
     }
 };
 Video.prototype.isPlaying = function() {
-    return !$('#videotag').get(0).paused;
+    return !$(this.selector).get(0).paused;
 };
 Video.prototype.play = function() {
-    $('#videotag').get(0).play();
+    $(this.selector).get(0).play();
 };
 Video.prototype.pause = function() {
-    $('#videotag').get(0).pause();
+    $(this.selector).get(0).pause();
 };
 Video.prototype.setPlaybackRate = function(playbackRate) {
-    $('#videotag').get(0).playbackRate = playbackRate;
+    $(this.selector).get(0).playbackRate = playbackRate;
 };
 Video.prototype.getPlaybackRate = function() {
-    return $('#videotag').get(0).playbackRate;
+    return $(this.selector).get(0).playbackRate;
 };
 Video.prototype.setCurrentTime = function(currentTime) {
-    $('#videotag').get(0).currentTime = currentTime;
+    $(this.selector).get(0).currentTime = currentTime;
 };
 Video.prototype.getCurrentTime = function() {
-    return $('#videotag').get(0).currentTime;
+    return $(this.selector).get(0).currentTime;
 };
 Video.prototype.onTijdVeranderd = function() {
     this.ignoreTimeUpdate = true;
@@ -475,14 +478,14 @@ Video.prototype.onTijdVeranderd = function() {
 };
 
 
-function KaartFullScreen(onVergroot, onVerklein, context) {
+function KaartFullScreen(selector, onVergroot, onVerklein, context) {
     this.onVergroot = onVergroot;
     this.onVerklein = onVerklein;
     this.context = context;
 
     this.button = $('<a></a>').attr('href', '#').appendTo(
             $('<div></div>').addClass('leaflet-control-size leaflet-bar leaflet-control')
-            .appendTo($('#kaartje .leaflet-control-container .leaflet-top.leaflet-right'))
+            .appendTo($(selector + ' .leaflet-control-container .leaflet-top.leaflet-right'))
             );
 
     var button = this.button.get(0);
@@ -524,8 +527,10 @@ KaartFullScreen.prototype.onClick = function(evt) {
 
 
 // Kaart
-function Kaart() {
-    this.options = {
+function Kaart(selector) {
+    var self = this;
+    self.selector = '#' + selector;
+    self.options = {
         line: {
             stroke: true, color: '#00a9e0', opacity: 1, weight: 5
         }, marker: {
@@ -534,29 +539,28 @@ function Kaart() {
             radius: 7.5
         }
     };
-
-    this.map = L.map('kaartje').setView([52.15, 5.30], 10);
+    self.map = L.map(selector).setView([52.15, 5.30], 10);
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
-    }).addTo(this.map);
+    }).addTo(self.map);
 
-    var self = this;
-    new KaartFullScreen(function() {
-        $('#kaart').animate({width: this.groot.width}, this.kaartOptions);
+    new KaartFullScreen(self.selector, function() {
+        this.parent.animate({width: this.groot}, this.kaartOptions);
     }, function() {
-        $('#kaart').animate({width: this.klein.width}, this.kaartOptions);
+        this.parent.animate({width: this.klein}, this.kaartOptions);
     }, {
-        klein: {width: $('#kaart').width()},
-        groot: {width: 600},
+        parent: $(self.selector).parent(),
+        klein: $(self.selector).parent().width(),
+        groot: 600,
         kaartOptions: {duration: 500, complete: function() {
                 self.map.invalidateSize();
                 grafiek.tekenGrafiek();
             }}});
 
-    this.map.on('movestart', this.onMoveStart, this);
-    this.map.on('moveend', this.onMoveEnd, this);
+    self.map.on('movestart', self.onMoveStart, self);
+    self.map.on('moveend', self.onMoveEnd, self);
 
-    this.onRouteVeranderd();
+    self.onRouteVeranderd();
 }
 Kaart.prototype.onRouteVeranderd = function() {
     var self = this;
@@ -577,7 +581,7 @@ Kaart.prototype.onGPXLoaded = function(data) {
         if (this.locatieLijn) {
             this.map.removeLayer(this.locatieLijn);
         }
-        this.locatieLijn = new L.polyline(this.locaties, this.options.line)
+        this.locatieLijn = L.polyline(this.locaties, this.options.line)
                 .on('click', this.onRouteClick, this)
                 .addTo(this.map);
         if (this.marker) {
@@ -790,10 +794,10 @@ Kaart.prototype.modifyMap = function(started) {
 
 
 // Verhaal
-function Verhaal() {
-    this.verhaal = $('#verhaal');
-    this.tekst = $('#verhaal-tekst');
-    this.gezicht = $('#gezicht');
+function Verhaal(selector, selectorTekst, selectorGezicht) {
+    this.verhaal = $(selector);
+    this.tekst = $(selectorTekst);
+    this.gezicht = $(selectorGezicht);
     this.tijdZichtbaar = 10;
     this.gezichtExtensie = '.jpg';
     this.fadeDuration = 200;
