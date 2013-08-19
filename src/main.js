@@ -1,12 +1,18 @@
 /* -----------------------------------------------------------------------------
- -testen in verschillende browsers (firefox, chrome, IE8 en IE9: functionaliteit en design)
  TODO:
+ - testen in verschillende browsers (firefox, chrome, IE8 en IE9: functionaliteit en design)
  - share buttons, twitter, facebook
  - made by Geodan
+ 
+ - flash fallback - http://mediaelementjs.com/ - ?
  ------------------------------------------------------------------------------*/
+var fullScreenImgURL = {
+    enlarge: 'src/enlarge-white.png',
+    shrink: 'src/shrink-white.png'
+};
 var routes = [
     new Route('Amsterdam', 'Oscar\'s route van Amsterdam', 'amsterdam-1/'),
-    new Route('Test', 'Test route van niks eigenlijk....', 'amsterdam-1/')
+    new Route('Test', 'Test route van niks eigenlijk....', 'amsterdam-2/')
 ];
 function Route(naam, titel, pad) {
     pad = 'data/' + pad;
@@ -81,7 +87,7 @@ GrafiekInfo.prototype.setInformatie = function(x, y, waarde, kader) {
         suffix = '!';
     }
 
-    this.elem.html(formatNumber(waarde, 4) + " " + this.eenheid + suffix);
+    this.elem.html(formatNumber(waarde, 4) + ' ' + this.eenheid + suffix);
     this.elem.animate({left: posX, top: posY}, 'fast');
 };
 GrafiekInfo.prototype.setZichtbaar = function(zichtbaar) {
@@ -140,20 +146,30 @@ Grafiek.prototype.onRouteVeranderd = function() {
         self.data = d;
         self.tekenGrafiek();
         self.grafiekInfo.setZichtbaar(true);
+    }).fail(function() {
+        self.data = undefined;
+        self.tekenGrafiek();
+        self.grafiekInfo.setZichtbaar(false);
     });
 };
 Grafiek.prototype.onGrafiekGeklikt = function(evt) {
     var self = evt.data.self;
+    if (!self.data) {
+        return;
+    }
+
     var canvas = $(self.selector);
     var offset = canvas.offset();
+    var x = (offset ? evt.clientX - offset.left : evt.clientX);
+
     var c = canvas.get(0).getContext('2d');
     var padding = self.getPadding(c);
     var breedte = canvas.width() - padding.left - padding.right;
-    var x = (offset ? evt.clientX - offset.left : evt.clientX) - padding.left;
+    x -= padding.left;
     x = Math.max(0, Math.min(breedte, x));
 
-    var min = self.laagste('time'), max = self.hoogste('time');
-    header.setHuidigeTijd(x * (max - min) / breedte + min, 'grafiek');
+    var schaal = self.getSchaal();
+    header.setHuidigeTijd(x * schaal.distX / breedte + schaal.minX, 'grafiek');
 
     self.grafiekInfo.setZichtbaar(true);
     //evt.stopPropagation();
@@ -365,25 +381,27 @@ Grafiek.prototype.tekenGrafiek = function() {
         var kader = {left: padding.left, top: padding.top, right: w + padding.left, bottom: h + padding.top};
         this.grafiekInfo.setInformatie(padding.left + x, padding.top + y, Math.round(waarde), kader);
     }
+
+    c.translate(-padding.left, -padding.top);
 };
 
 
 // Video
-function Video(selector, playUpdate, alleenVerhaaltjesUpdate) {
+function Video(selector, knopPlayPause, knopSnelheid) {
     this.selector = selector;
     // alleen de verhaaltjes op normale snelheid, en de rest versneld laten zien?
     this.alleenVerhaaltjes = false;
     this.snel = 4;
 
-    this.playUpdate = playUpdate;
-    this.alleenVerhaaltjesUpdate = alleenVerhaaltjesUpdate;
+    this.knopPlayPause = knopPlayPause;
+    this.knopSnelheid = knopSnelheid;
 
     var self = this;
     $(this.selector).on({
+        click: self.togglePlaying,
         playing: self.onPlay,
         pause: self.onPause,
-        timeupdate: self.onTimeUpdate,
-        click: self.togglePlaying
+        timeupdate: self.onTimeUpdate
     }, {self: self});
     this.onRouteVeranderd();
 }
@@ -391,18 +409,25 @@ Video.prototype.onRouteVeranderd = function() {
     var vid = $(this.selector);
     vid.empty();
     for (var i = 0; i < header.route.videosrc.length; i++) {
-        vid.append($('<source>').attr('src', header.route.videosrc[i]));
+        try {
+            vid.append($('<source>').attr('src', header.route.videosrc[i]));
+        } catch (err) {
+        }
     }
-    vid.get(0).load();
+    if (vid.get(0).load) {
+        vid.get(0).load();
+    } else {
+        // video tag niet ondersteund!
+    }
 };
 // events:
 Video.prototype.onPlay = function(evt) {
     var self = evt.data.self;
-    self.playUpdate.update();
+    self.knopPlayPause.update();
 };
 Video.prototype.onPause = function(evt) {
     var self = evt.data.self;
-    self.playUpdate.update();
+    self.knopPlayPause.update();
 };
 Video.prototype.onTimeUpdate = function(evt) {
     if (!this.ignoreTimeUpdate) {
@@ -420,6 +445,63 @@ Video.prototype.onVerhaalEindigt = function() {
         this.setPlaybackRate(this.snel);
     }
 };
+// native video velden
+Video.prototype.setPlaying = function(playing) {
+    console.log('video.setPlaying(' + playing + ')');
+    if (playing === this.isPlaying()) {
+        return;
+    }
+    var videotag = $(this.selector).get(0);
+    if (videotag.play && videotag.pause) {
+        if (playing) {
+            videotag.play();
+        } else {
+            videotag.pause();
+        }
+    } else {
+        if (playing) {
+            var self = this, frameRate = 30;
+            this.handmatigeTimeUpdate = setInterval(function() {
+                header.setHuidigeTijd(header.huidigeTijd +
+                        self.getPlaybackRate() / frameRate, 'video');
+            }, 1000 / frameRate);
+            this.onPlay({data: {self: this}});
+        } else {
+            clearInterval(this.handmatigeTimeUpdate);
+            this.handmatigeTimeUpdate = undefined;
+            this.onPause({data: {self: this}});
+        }
+    }
+};
+Video.prototype.isPlaying = function() {
+    var videotag = $(this.selector).get(0);
+    if (videotag.play && videotag.pause) {
+        return !videotag.paused;
+    } else {
+        return this.handmatigeTimeUpdate !== undefined;
+    }
+};
+Video.prototype.setCurrentTime = function(currentTime) {
+    console.log('video.setCurrentTime(' + currentTime + ')');
+    try {
+        var videotag = $(this.selector).get(0);
+        if (videotag.duration && !isNaN(videotag.duration) && isFinite(videotag.duration)) {
+            currentTime = Math.min(currentTime, videotag.duration);
+        }
+        videotag.currentTime = currentTime;
+    } catch (err) {
+    } // InvalidStateError DOM Exception 11
+};
+Video.prototype.getCurrentTime = function() {
+    return $(this.selector).get(0).currentTime || 0;
+};
+Video.prototype.setPlaybackRate = function(playbackRate) {
+    console.log('video.PlaybackRate(' + playbackRate + ')');
+    $(this.selector).get(0).playbackRate = playbackRate;
+};
+Video.prototype.getPlaybackRate = function() {
+    return $(this.selector).get(0).playbackRate || 1;
+};
 // overige
 Video.prototype.setAlleenVerhaaltjes = function(alleenVerhaaltjes) {
     this.alleenVerhaaltjes = alleenVerhaaltjes;
@@ -433,7 +515,7 @@ Video.prototype.setAlleenVerhaaltjes = function(alleenVerhaaltjes) {
             this.setPlaybackRate(1);
         }
     }
-    this.alleenVerhaaltjesUpdate.update();
+    this.knopSnelheid.update();
 };
 Video.prototype.isAlleenVerhaaltjes = function() {
     return this.alleenVerhaaltjes;
@@ -443,32 +525,7 @@ Video.prototype.toggleAlleenVerhaaltjes = function() {
 };
 Video.prototype.togglePlaying = function(evt) {
     var self = evt ? evt.data.self : this;
-    if (self.isPlaying()) {
-        self.pause();
-    } else {
-        self.play();
-    }
-};
-Video.prototype.isPlaying = function() {
-    return !$(this.selector).get(0).paused;
-};
-Video.prototype.play = function() {
-    $(this.selector).get(0).play();
-};
-Video.prototype.pause = function() {
-    $(this.selector).get(0).pause();
-};
-Video.prototype.setPlaybackRate = function(playbackRate) {
-    $(this.selector).get(0).playbackRate = playbackRate;
-};
-Video.prototype.getPlaybackRate = function() {
-    return $(this.selector).get(0).playbackRate;
-};
-Video.prototype.setCurrentTime = function(currentTime) {
-    $(this.selector).get(0).currentTime = currentTime;
-};
-Video.prototype.getCurrentTime = function() {
-    return $(this.selector).get(0).currentTime;
+    self.setPlaying(!self.isPlaying());
 };
 Video.prototype.onTijdVeranderd = function() {
     this.ignoreTimeUpdate = true;
@@ -505,13 +562,13 @@ KaartFullScreen.prototype.setKlein = function(klein) {
         title = 'Maak groter';
         buttonClass = 'leaflet-control-enlarge';
         removeClass = 'leaflet-control-shrink';
-        html = '<img src="data/enlarge.png" />';
+        html = '<img src="' + fullScreenImgURL.enlarge + '" />';
         fn = this.onVerklein;
     } else {
         title = 'Maak kleiner';
         buttonClass = 'leaflet-control-shrink';
         removeClass = 'leaflet-control-enlarge';
-        html = '<img src="data/shrink.png" />';
+        html = '<img src="' + fullScreenImgURL.shrink + '" />';
         fn = this.onVergroot;
     }
     this.button.attr('title', title).html(html);
@@ -569,12 +626,14 @@ Kaart.prototype.onRouteVeranderd = function() {
         dataType: 'xml'
     }).done(function(data) {
         self.onGPXLoaded(data);
+    }).fail(function() {
+        self.onGPXLoaded(undefined);
     });
 };
 Kaart.prototype.onGPXLoaded = function(data) {
-    this.locaties = gpxparser.parse_gpx(data);
+    this.locaties = data ? gpxparser.parse_gpx(data) : undefined;
     this.locatie = 0;
-    if (this.locaties.length === 0) {
+    if (!this.locaties || this.locaties.length === 0) {
         this.map.removeLayer(this.locatieLijn);
         this.map.removeLayer(this.marker);
     } else {
@@ -781,15 +840,11 @@ Kaart.prototype.beweegKaartAlsNodig = function() {
         var markerPos = this.marker.getLatLng();
         var mapBounds = this.map.getBounds();
         if (!mapBounds.contains(markerPos) && !this.isBezig) {
-            this.modifyMap(true);
-            this.map.setView(markerPos, 17);
-            this.modifyMap(false);
+            this.ignoreMoveEvent = true;
+            this.map.setView(markerPos, Math.max(12, this.map.getZoom()));
+            this.ignoreMoveEvent = false;
         }
     }
-};
-// don't handle events when we move the map programmatically
-Kaart.prototype.modifyMap = function(started) {
-    this.ignoreMoveEvent = started;
 };
 
 
@@ -812,51 +867,56 @@ Verhaal.prototype.onRouteVeranderd = function() {
         self.data = d;
         self.onTijdVeranderd();
         grafiek.setTekstTijden(self.getTekstTijden());
+    }).fail(function() {
+        self.data = undefined;
+        self.onTijdVeranderd();
+        grafiek.setTekstTijden(undefined);
     });
 };
 Verhaal.prototype.onTijdVeranderd = function() {
-    if (!this.data) {
-        return;
-    }
     var self = this;
-    for (var i = self.data.length - 1; i >= 0; i--) {
-        var verhaal = self.data[i];
-        if (header.huidigeTijd >= verhaal.time &&
-                header.huidigeTijd < verhaal.time + self.tijdZichtbaar) {
-            // tekst fade
-            if (!self.isTextFading) {
-                if (self.tekst.html() && self.tekst.html() !== verhaal.text) {
-                    self.isTextFading = true;
-                    self.tekst.fadeOut(self.textFade, function() {
-                        self.tekst.html(verhaal.text).fadeIn(self.textFade, function() {
-                            self.isTextFading = false;
+    if (this.data) {
+        for (var i = self.data.length - 1; i >= 0; i--) {
+            var verhaal = self.data[i];
+            if (header.huidigeTijd >= verhaal.time &&
+                    header.huidigeTijd < verhaal.time + self.tijdZichtbaar) {
+                // tekst fade
+                if (!self.isTextFading) {
+                    if (self.tekst.html() && self.tekst.html() !== verhaal.text) {
+                        self.isTextFading = true;
+                        self.tekst.fadeOut(self.textFade, function() {
+                            self.tekst.html(verhaal.text).fadeIn(self.textFade, function() {
+                                self.isTextFading = false;
+                            });
                         });
-                    });
-                } else {
-                    self.tekst.html(verhaal.text);
+                    } else {
+                        self.tekst.html(verhaal.text);
+                    }
                 }
-            }
-            var face = '';
-            // trace back last face
-            for (var j = i; j >= 0; j--) {
-                if (self.data[j].face) {
-                    face = self.data[j].face;
-                    break;
+                var face = '';
+                // trace back last face
+                for (var j = i; j >= 0; j--) {
+                    if (self.data[j].face) {
+                        face = self.data[j].face;
+                        break;
+                    }
                 }
-            }
-            self.gezicht.attr('src', face ? (header.route.faceDir + face + self.gezichtExtensie) : '');
-            if (!self.verhaal.is(':visible')) {
-                self.verhaal.fadeIn(self.fadeDuration);
-            }
+                self.gezicht.attr('src', face ? (header.route.faceDir + face + self.gezichtExtensie) : '');
+                self.gezicht.attr('alt', face ? face : 'gezicht');
+                if (!self.verhaal.is(':visible')) {
+                    self.verhaal.fadeIn(self.fadeDuration);
+                }
 
-            self.setVerhaal(verhaal);
-            return;
+                self.setVerhaal(verhaal);
+                return;
+            }
         }
     }
     // geen verhaal.
     self.verhaal.fadeOut(self.fadeDuration, function() {
         self.tekst.html('');
         self.gezicht.attr('src', '');
+        self.gezicht.attr('alt', 'gezicht');
     });
     self.setVerhaal(null);
 };
@@ -885,10 +945,12 @@ Verhaal.prototype.setVerhaal = function(verhaal) {
         // changed
         if (verhaal === null) {
             // eind
-            video.onVerhaalEindigt();
+            if (video)
+                video.onVerhaalEindigt();
         } else if (this.huidigVerhaal === null) {
             // start
-            video.onVerhaalBegint();
+            if (video)
+                video.onVerhaalBegint();
         }
     }
     this.huidigVerhaal = verhaal;
@@ -906,7 +968,7 @@ header = {
             this.setRoute(header.route);
         },
         setRoute: function(route) {
-            $("#routenaam").html(route.titel);
+            $('#routenaam').html(route.titel);
         }
     },
     knopPlay: {
@@ -982,6 +1044,7 @@ header = {
     setRoute: function(routeNaam) {
         for (var i = 0; i < routes.length; i++) {
             if (routes[i].naam && routes[i].naam === routeNaam) {
+                header.setHuidigeTijd(0);
                 this.route = routes[i];
                 this.labelRouteNaam.setRoute(this.route);
                 this.knopRouteMenu.updateRouteMenu();
@@ -999,19 +1062,22 @@ header = {
         }
     },
     setHuidigeTijd: function(tijd, ignore) {
-        var maxTijd = grafiek.hoogste('time');
+        var maxTijd = (tijd === 0 || !grafiek) ? 0 : grafiek.hoogste('time');
         if (tijd > maxTijd) {
             tijd = maxTijd;
         }
         this.huidigeTijd = tijd;
         // video
-        if (ignore !== 'video' && !video.onTijdVeranderd()) {
+        if (video && ignore !== 'video' && !video.onTijdVeranderd()) {
             // de video kan niet geskipt worden.
             return;
         }
-        grafiek.onTijdVeranderd();
-        kaart.onTijdVeranderd();
-        verhaal.onTijdVeranderd();
+        if (grafiek)
+            grafiek.onTijdVeranderd();
+        if (kaart)
+            kaart.onTijdVeranderd();
+        if (verhaal)
+            verhaal.onTijdVeranderd();
     }
 };
 
@@ -1019,37 +1085,66 @@ header = {
 gpxparser = {
     parse_gpx: function(xml) {
         var coords = [];
-        var tags = [['rte', 'rtept'], ['trkseg', 'trkpt']];
-        for (var j = 0; j < tags.length; j++) {
-            var el = xml.getElementsByTagName(tags[j][0]);
-            for (var i = 0; i < el.length; i++) {
-                var trackSegment = this.parse_trkseg(el[i], tags[j][1]);
-                if (trackSegment.length > 0) {
-                    coords = coords.concat(trackSegment);
-                }
+        $(xml).find('trkseg').each(function() {
+            var stuk = gpxparser.parse_segment(this);
+            if (stuk.length > 0) {
+                coords = coords.concat(stuk);
             }
-        }
+        });
         return coords;
     },
-    parse_trkseg: function(line, tag) {
-        var el = line.getElementsByTagName(tag);
-        if (!el.length)
-            return [];
+    parse_date: function(str) {
+        var d = new Date(str);
+        if (!isNaN(d)) {
+            return d;
+        }
+        var d = new Date(str.replace(/-/g, '/'));
+        if (!isNaN(d)) {
+            return d;
+        }
+        var d, tz,
+                rx = /^(\d{4}\-\d\d\-\d\d([tT ][\d:\.]*)?)([zZ]|([+\-])(\d\d):(\d\d))?$/,
+                p = rx.exec(str) || [];
+        if (p[1]) {
+            d = p[1].split(/\D/);
+            for (var i = 0, L = d.length; i < L; i++) {
+                d[i] = parseInt(d[i], 10) || 0;
+            }
+            ;
+            d[1] -= 1;
+            d = new Date(Date.UTC.apply(Date, d));
+            if (!d.getDate())
+                return NaN;
+            if (p[5]) {
+                tz = (parseInt(p[5], 10) * 60);
+                if (p[6])
+                    tz += parseInt(p[6], 10);
+                if (p[4] === '+')
+                    tz *= -1;
+                if (tz)
+                    d.setUTCMinutes(d.getUTCMinutes() + tz);
+            }
+            return d;
+        }
+        return NaN;
+    },
+    parse_segment: function(segment) {
         var coords = [];
-        for (var i = 0; i < el.length; i++) {
-            var tmp, ll = new L.LatLng(el[i].getAttribute('lat'), el[i].getAttribute('lon'));
+        $(segment).find('trkpt').each(function() {
+            var pt = $(this), tmp, ll = new L.LatLng(pt.attr('lat'), pt.attr('lon'));
             ll.tijd = null;
             ll.hoogte = null;
-            tmp = el[i].getElementsByTagName('time');
+            tmp = pt.children('time');
             if (tmp.length > 0) {
-                ll.tijd = new Date(Date.parse(tmp[0].textContent)).getTime();
+                var time = gpxparser.parse_date(tmp.text());
+                ll.tijd = time.getTime();
             }
-            tmp = el[i].getElementsByTagName('ele');
+            tmp = pt.children('ele');
             if (tmp.length > 0) {
-                ll.hoogte = parseFloat(tmp[0].textContent);
+                ll.hoogte = parseFloat(tmp.text());
             }
             coords.push(ll);
-        }
+        });
         return coords;
     }
 };

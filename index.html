@@ -1,21 +1,19 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="UTF-8" />
+        <meta charset="utf-8" />
         <title>Rochelroutes</title>
 
-        <link rel="stylesheet" href="src/leaflet/leaflet.css" />
-
+        <link type="text/css" rel="stylesheet" href="src/leaflet/leaflet.css" />
         <!--[if lte IE 8]>
-            <link rel="stylesheet" href="src/leaflet/leaflet.ie.css" />
+            <link type="text/css" rel="stylesheet" href="src/leaflet/leaflet.ie.css" />
             <script type="text/javascript" src="src/excanvas.js"></script>
         <![endif]-->
+        <link type="text/css" rel="stylesheet" href="src/main.css">
 
-        <link rel="stylesheet" type="text/css" href="src/main.css">
-
-        <script src="src/jquery.js"></script>
-        <script src="src/leaflet/leaflet-src.js"></script>
-        <script src="src/main.js"></script>
+        <script type="text/javascript" src="src/jquery.js"></script>
+        <script type="text/javascript" src="src/leaflet/leaflet-src.js"></script>
+        <script type="text/javascript" src="src/main.js"></script>
     </head>
     <body>
         <ul id="header">
@@ -24,6 +22,7 @@
             <li><a class="klikbaar" id="knop-snelheid" href="#">&#9656;&#9656; Sneller afspelen</a></li>
             <li id="route-menu"><a class="klikbaar" id="knop-route-menu" href="#">Bekijk ook andere routes &#x25BC;</a></li>
         </ul>
+
         <div id="container">
             <div id="wrapper-kaart">
                 <div id="kaart">
@@ -34,22 +33,22 @@
                 </video>
             </div>
         </div>
+
         <div id="footer">
             <div id="wrapper-grafiek">
                 <canvas id="grafiek" width="800" height="125"></canvas>
                 <span id="grafiekinfo"></span>
             </div>
             <div id="verhaal" style="display: none;">
-                <img id="verhaal-gezicht" src="" />
+                <img id="verhaal-gezicht" src="" alt="gezicht" />
                 <div id="wolk">
                     <p id="verhaal-tekst"></p>
-                    <img id="verhaal-wolk" src="data/wolk.png" width="263" height="232" />
+                    <img id="verhaal-wolk" src="src/wolk.png" width="263" height="232" alt="tekstwolk" />
                 </div>
             </div>
             <div id="oproep">
                 <a href="#" onclick="alert('hier moet nog een link komen!');">Maak een oproep aan je gemeente!</a>
             </div>
         </div>
-
     </body>
 </html>

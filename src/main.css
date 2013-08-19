@@ -23,6 +23,7 @@ body {
 #header, #header ul { list-style: none; }
 #header {
     background-color: #cccccc;
+    background-image: linear-gradient(to bottom, #e8e8e8 0%, #d8d8d8 10%, #cccccc 100%);
     float: left;
     width: 100%;
 }
@@ -105,12 +106,8 @@ body {
 }
 #kaart {
     position: relative;
-    width: 343px;
-    height: 343px;
-    /*
     width: 100%;
     height: 100%;
-    */
 }
 
 
@@ -127,17 +124,20 @@ body {
 
 
 .leaflet-bar { box-shadow: none; }
-.leaflet-bar a:hover { background-color: #eeeeee; }
 .leaflet-bar, .leaflet-bar a:first-child, .leaflet-bar a:last-child {
     -webkit-border-radius: 0px 0px 0px 0px;
     border-radius: 0px 0px 0px 0px;
 }
 
 .leaflet-bar a, .leaflet-bar a:hover {
+    background-color: #6E2585;
+    border: 1px solid #440088;
+    color: #e1e1e1;
     margin-bottom: 5px;
-    border: 1px solid #cccccc;
 }
 .leaflet-bar a:last-child { margin-bottom: 0; }
+.leaflet-bar a:hover { background-color: #8b46a2; }
+.leaflet-bar a:active, .leaflet-bar a:focus { background-color: #ad51cc; }
 
 .leaflet-control-enlarge img, .leaflet-control-shrink img {
     width: 20px;
