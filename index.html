@@ -9,9 +9,11 @@
             <link type="text/css" rel="stylesheet" href="src/leaflet/leaflet.ie.css" />
             <script type="text/javascript" src="src/excanvas.js"></script>
         <![endif]-->
+        <link type="text/css" rel="stylesheet" href="src/video-js/video-js.min.css">
         <link type="text/css" rel="stylesheet" href="src/main.css">
 
         <script type="text/javascript" src="src/jquery.js"></script>
+        <script type="text/javascript" src="src/video-js/video.dev.js"></script>
         <script type="text/javascript" src="src/leaflet/leaflet-src.js"></script>
         <script type="text/javascript" src="src/main.js"></script>
     </head>
@@ -29,7 +31,8 @@
                 </div>
             </div>
             <div id="wrapper-video">
-                <video id="video" preload="metadata">
+                <video id="div_video"
+                       class="video-js vjs-default-skin" data-setup="{}" preload="auto" width="609" height="343">
                 </video>
             </div>
         </div>

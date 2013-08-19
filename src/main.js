@@ -23,8 +23,8 @@ function Route(naam, titel, pad) {
     this.verhaal = pad + 'verhaal.json';
     this.faceDir = pad + 'faces/';
     this.videosrc = [
-        pad + 'movie.mp4',
-        pad + 'movie.webm'
+        {type: 'video/mp4', src: pad + 'movie.mp4'},
+        {type: 'video/webm', src: pad + 'movie.webm'}
     ];
 }
 
@@ -42,23 +42,18 @@ var formatNumber = function(getal, significanteCijfers) {
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return parts.join(',');
 };
-
 var grafiek, video, kaart, verhaal, header, gpxparser;
-
 $(document).ready(function() {
     header.setRoute('Amsterdam');
-
     header.labelRouteNaam.init();
     header.knopPlay.init();
     header.knopSpeed.init();
     header.knopRouteMenu.init();
-
     grafiek = new Grafiek('#grafiek');
     verhaal = new Verhaal('#verhaal', '#verhaal-tekst', '#verhaal-gezicht');
     kaart = new Kaart('kaart');
-    video = new Video('#video', header.knopPlay, header.knopSpeed);
+    video = new Video(header.knopPlay, header.knopSpeed);
 });
-
 function GrafiekInfo() {
     this.elem = $('#grafiekinfo');
     this.zichtbaar = false;
@@ -66,7 +61,7 @@ function GrafiekInfo() {
     this.animatieTijd = 200;
 }
 GrafiekInfo.prototype.setInformatie = function(x, y, waarde, kader) {
-    // positionering
+// positionering
     var w = this.elem.outerWidth(), h = this.elem.outerHeight();
     var margin = 10, posX, posY;
     if (x - w - margin >= kader.left) {
@@ -103,19 +98,15 @@ GrafiekInfo.prototype.setZichtbaar = function(zichtbaar) {
         }
     }
 };
-
-
 // Grafiek
 function Grafiek(selector) {
     this.selector = selector;
     this.data = null;
     this.grafiekInfo = new GrafiekInfo();
-
     var self = this;
     $(this.selector).resize(function() {
         self.tekenGrafiek();
     }).on('click', {self: self}, self.onGrafiekGeklikt);
-
     this.onRouteVeranderd();
 }
 Grafiek.prototype.getPadding = function(c) {
@@ -128,7 +119,7 @@ Grafiek.prototype.getPadding = function(c) {
         if (c.measureText) {
             padding.left += c.measureText(number).width;
         } else {
-            // we maken gebruik van excanvas. Het heeft geen ondersteuning voor text dus hebben we ook geen padding nodig.
+// we maken gebruik van excanvas. Het heeft geen ondersteuning voor text dus hebben we ook geen padding nodig.
             padding.left += 15;
         }
     }
@@ -161,21 +152,18 @@ Grafiek.prototype.onGrafiekGeklikt = function(evt) {
     var canvas = $(self.selector);
     var offset = canvas.offset();
     var x = (offset ? evt.clientX - offset.left : evt.clientX);
-
     var c = canvas.get(0).getContext('2d');
     var padding = self.getPadding(c);
     var breedte = canvas.width() - padding.left - padding.right;
     x -= padding.left;
     x = Math.max(0, Math.min(breedte, x));
-
     var schaal = self.getSchaal();
     header.setHuidigeTijd(x * schaal.distX / breedte + schaal.minX, 'grafiek');
-
     self.grafiekInfo.setZichtbaar(true);
     //evt.stopPropagation();
 };
 Grafiek.prototype.onTijdVeranderd = function() {
-    // grafiek opnieuw tekenen
+// grafiek opnieuw tekenen
     this.tekenGrafiek();
 };
 // teken hulpmethodes
@@ -216,7 +204,6 @@ Grafiek.prototype.getSchaal = function() {
     return {
         minX: xMin, maxX: xMax, distX: xMax - xMin,
         minY: yMin, maxY: yMax, distY: yMax - yMin};
-
 //    if (this.data && this.data.length > 0) {
 //        var hoogsteWaarde = false, huidigeIndex = Math.round(this.waardeNaarTijd(header.huidigeTijd));
 //        for (var i = huidigeIndex - 10; i <= huidigeIndex + 10; i++) {
@@ -249,17 +236,13 @@ Grafiek.prototype.tekenGrafiek = function() {
     var graph = $(this.selector);
     graph.attr('width', graph.parent().width());
     var c = graph.get(0).getContext('2d');
-
     var hoogteVerhaal = 15;
     var padding = this.getPadding(c);
     var w = graph.width() - padding.left - padding.right;
     var h = graph.height() - padding.top - padding.bottom - hoogteVerhaal;
-
     c.translate(padding.left, padding.top);
-
     if (this.data && this.data.length) {
         var schaal = this.getSchaal();
-
         // verticale strepen om de minuut
         c.strokeStyle = colors.strepen;
         c.fillStyle = colors.tekstAsBeschrijving;
@@ -271,7 +254,7 @@ Grafiek.prototype.tekenGrafiek = function() {
             c.lineTo(x, h);
             c.stroke();
         }
-        // horizontale strepen (maximaal 8 strepen)
+// horizontale strepen (maximaal 8 strepen)
         var omde = 10000, keer5 = true;
         do {
             aantalStrepen = schaal.distY / omde;
@@ -283,13 +266,12 @@ Grafiek.prototype.tekenGrafiek = function() {
             c.moveTo(0, y);
             c.lineTo(w, y);
             c.stroke();
-
             if (c.fillText) {
                 c.fillText(formatNumber(schaal.minY + schaal.distY * i / aantalStrepen, 3), -3, y);
             }
         }
 
-        // clip
+// clip
         if (c.clip) {
             c.save();
             c.beginPath();
@@ -301,7 +283,7 @@ Grafiek.prototype.tekenGrafiek = function() {
             c.clip();
         }
 
-        // lijnen
+// lijnen
         c.beginPath();
         for (var i = 0; i < this.data.length; i++) {
             var x = w * (this.data[i].time - schaal.minX) / schaal.distX;
@@ -319,13 +301,12 @@ Grafiek.prototype.tekenGrafiek = function() {
         c.lineWidth = 2;
         c.strokeStyle = colors.shape_stroke;
         c.stroke();
-
         // unclip
         if (c.restore) {
             c.restore();
         }
 
-        // verhaaltjes
+// verhaaltjes
         if (this.tekstTijden) {
             for (var i = 0; i < this.tekstTijden.length; i++) {
                 var x1 = w * (this.tekstTijden[i] - schaal.minX) / schaal.distX;
@@ -342,12 +323,11 @@ Grafiek.prototype.tekenGrafiek = function() {
             }
         }
     }
-    // assen
+// assen
     c.beginPath();
     c.moveTo(0, 0);
     c.lineTo(0, h);
     c.lineTo(w, h);
-
     c.lineWidth = 1;
     c.strokeStyle = colors.hoofdstrepen;
     c.stroke();
@@ -355,16 +335,13 @@ Grafiek.prototype.tekenGrafiek = function() {
     if (this.data && this.data.length) {
         var tijd = Math.min(schaal.maxX, Math.max(schaal.minX, header.huidigeTijd));
         var x = w * (tijd - schaal.minX) / schaal.distX;
-
         c.beginPath();
         c.moveTo(x, 0);
         c.lineTo(x, h + hoogteVerhaal);
         c.closePath();
-
         c.lineWidth = 3;
         c.strokeStyle = colors.tijd_balk;
         c.stroke();
-
         // snijpunt
 
         var index = this.waardeNaarTijd(header.huidigeTijd);
@@ -374,7 +351,7 @@ Grafiek.prototype.tekenGrafiek = function() {
             var d0 = this.data[indexFloor].value, d1 = this.data[indexFloor + 1].value;
             waarde = d0 + (d1 - d0) * (index % 1); // * kommagetal
         } else {
-            // laatste punt
+// laatste punt
             waarde = this.data[indexFloor].value;
         }
         var y = h * (waarde - schaal.maxY) / -schaal.distY;
@@ -384,41 +361,37 @@ Grafiek.prototype.tekenGrafiek = function() {
 
     c.translate(-padding.left, -padding.top);
 };
-
-
 // Video
-function Video(selector, knopPlayPause, knopSnelheid) {
-    this.selector = selector;
+function Video(knopPlayPause, knopSnelheid) {
     // alleen de verhaaltjes op normale snelheid, en de rest versneld laten zien?
     this.alleenVerhaaltjes = false;
     this.snel = 4;
-
     this.knopPlayPause = knopPlayPause;
     this.knopSnelheid = knopSnelheid;
-
     var self = this;
-    $(this.selector).on({
-        click: self.togglePlaying,
-        playing: self.onPlay,
-        pause: self.onPause,
-        timeupdate: self.onTimeUpdate
-    }, {self: self});
+    // EVENTS ------------------------------------------------------------------
+    var fn = function(func) {
+        return function() {
+            func({data: {self: self}});
+        };
+    };
+    var player = Video.getPlayer();
+    player.on('play', fn(this.onPlay));
+    player.on('pause', fn(this.onPause));
+    player.on('timeupdate', fn(this.onTimeUpdate));
     this.onRouteVeranderd();
 }
+Video.getPlayer = function() {
+    return videojs("div_video");
+};
+Video.getHtml5_Video = function() {
+    return $("#div_video_html5_api").get(0);
+};
 Video.prototype.onRouteVeranderd = function() {
-    var vid = $(this.selector);
-    vid.empty();
-    for (var i = 0; i < header.route.videosrc.length; i++) {
-        try {
-            vid.append($('<source>').attr('src', header.route.videosrc[i]));
-        } catch (err) {
-        }
-    }
-    if (vid.get(0).load) {
-        vid.get(0).load();
-    } else {
-        // video tag niet ondersteund!
-    }
+    var player = Video.getPlayer();
+    player.src(header.route.videosrc);
+    // load the new sources
+    player.load();
 };
 // events:
 Video.prototype.onPlay = function(evt) {
@@ -447,67 +420,42 @@ Video.prototype.onVerhaalEindigt = function() {
 };
 // native video velden
 Video.prototype.setPlaying = function(playing) {
-    console.log('video.setPlaying(' + playing + ')');
-    if (playing === this.isPlaying()) {
-        return;
-    }
-    var videotag = $(this.selector).get(0);
-    if (videotag.play && videotag.pause) {
-        if (playing) {
-            videotag.play();
-        } else {
-            videotag.pause();
-        }
+    var player = Video.getPlayer();
+    if (playing) {
+        player.play();
     } else {
-        if (playing) {
-            var self = this, frameRate = 30;
-            this.handmatigeTimeUpdate = setInterval(function() {
-                header.setHuidigeTijd(header.huidigeTijd +
-                        self.getPlaybackRate() / frameRate, 'video');
-            }, 1000 / frameRate);
-            this.onPlay({data: {self: this}});
-        } else {
-            clearInterval(this.handmatigeTimeUpdate);
-            this.handmatigeTimeUpdate = undefined;
-            this.onPause({data: {self: this}});
-        }
+        player.pause();
     }
 };
 Video.prototype.isPlaying = function() {
-    var videotag = $(this.selector).get(0);
-    if (videotag.play && videotag.pause) {
-        return !videotag.paused;
-    } else {
-        return this.handmatigeTimeUpdate !== undefined;
-    }
+    var player = Video.getPlayer();
+    return !player.paused();
 };
 Video.prototype.setCurrentTime = function(currentTime) {
-    console.log('video.setCurrentTime(' + currentTime + ')');
-    try {
-        var videotag = $(this.selector).get(0);
-        if (videotag.duration && !isNaN(videotag.duration) && isFinite(videotag.duration)) {
-            currentTime = Math.min(currentTime, videotag.duration);
-        }
-        videotag.currentTime = currentTime;
-    } catch (err) {
-    } // InvalidStateError DOM Exception 11
+    var player = Video.getPlayer();
+    player.currentTime(currentTime);
 };
 Video.prototype.getCurrentTime = function() {
-    return $(this.selector).get(0).currentTime || 0;
+    var player = Video.getPlayer();
+    return player.currentTime();
 };
 Video.prototype.setPlaybackRate = function(playbackRate) {
-    console.log('video.PlaybackRate(' + playbackRate + ')');
-    $(this.selector).get(0).playbackRate = playbackRate;
+    var html5Video = Video.getHtml5_Video();
+    if (html5Video)
+        html5Video.playbackRate = playbackRate;
 };
 Video.prototype.getPlaybackRate = function() {
-    return $(this.selector).get(0).playbackRate || 1;
+    var html5Video = Video.getHtml5_Video();
+    if (html5Video)
+        return html5Video.playbackRate;
+    return 1;
 };
 // overige
 Video.prototype.setAlleenVerhaaltjes = function(alleenVerhaaltjes) {
     this.alleenVerhaaltjes = alleenVerhaaltjes;
     if (alleenVerhaaltjes) {
         if (!verhaal.kijktVerhaal()) {
-            // geen verhaal dus volle kracht vooruit
+// geen verhaal dus volle kracht vooruit
             this.setPlaybackRate(this.snel);
         }
     } else {
@@ -523,8 +471,8 @@ Video.prototype.isAlleenVerhaaltjes = function() {
 Video.prototype.toggleAlleenVerhaaltjes = function() {
     this.setAlleenVerhaaltjes(!this.isAlleenVerhaaltjes());
 };
-Video.prototype.togglePlaying = function(evt) {
-    var self = evt ? evt.data.self : this;
+Video.prototype.togglePlaying = function() {
+    var self = this;
     self.setPlaying(!self.isPlaying());
 };
 Video.prototype.onTijdVeranderd = function() {
@@ -533,18 +481,13 @@ Video.prototype.onTijdVeranderd = function() {
     this.ignoreTimeUpdate = false;
     return this.getCurrentTime() === header.huidigeTijd;
 };
-
-
-function KaartFullScreen(selector, onVergroot, onVerklein, context) {
+function KaartFullScreen(selector, onVergroot, onVerklein) {
     this.onVergroot = onVergroot;
     this.onVerklein = onVerklein;
-    this.context = context;
-
     this.button = $('<a></a>').attr('href', '#').appendTo(
             $('<div></div>').addClass('leaflet-control-size leaflet-bar leaflet-control')
             .appendTo($(selector + ' .leaflet-control-container .leaflet-top.leaflet-right'))
             );
-
     var button = this.button.get(0);
     L.DomEvent
             .on(button, 'click', L.DomEvent.stopPropagation)
@@ -552,7 +495,6 @@ function KaartFullScreen(selector, onVergroot, onVerklein, context) {
             .on(button, 'dblclick', L.DomEvent.stopPropagation)
             .on(button, 'click', L.DomEvent.preventDefault)
             .on(button, 'click', this.onClick, this);
-
     this.setKlein(true);
 }
 KaartFullScreen.prototype.setKlein = function(klein) {
@@ -574,15 +516,13 @@ KaartFullScreen.prototype.setKlein = function(klein) {
     this.button.attr('title', title).html(html);
     this.button.removeClass(removeClass);
     this.button.addClass(buttonClass);
-    fn.call(this.context);
+    fn();
 };
 KaartFullScreen.prototype.onClick = function(evt) {
     this.setKlein(!this.isKlein);
     L.DomEvent.stopPropagation(evt);
     L.DomEvent.preventDefault(evt);
 };
-
-
 // Kaart
 function Kaart(selector) {
     var self = this;
@@ -601,22 +541,35 @@ function Kaart(selector) {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
     }).addTo(self.map);
 
-    new KaartFullScreen(self.selector, function() {
-        this.parent.animate({width: this.groot}, this.kaartOptions);
-    }, function() {
-        this.parent.animate({width: this.klein}, this.kaartOptions);
-    }, {
-        parent: $(self.selector).parent(),
-        klein: $(self.selector).parent().width(),
-        groot: 600,
-        kaartOptions: {duration: 500, complete: function() {
+
+    var parent = $(self.selector).parent();
+    var video = $('#div_video');
+    var kaartGroot = 600, kaartKlein = 343;
+    var videoKlein = 352, videoGroot = 609;
+
+    var self = this;
+
+    var enlarge = function() {
+        video.animate({width: videoKlein});
+        parent.animate({width: kaartGroot}, {
+            duration: 500, complete: function() {
                 self.map.invalidateSize();
                 grafiek.tekenGrafiek();
-            }}});
-
+            }
+        });
+    };
+    var shrink = function() {
+        video.animate({width: videoGroot});
+        parent.animate({width: kaartKlein}, {
+            duration: 500, complete: function() {
+                self.map.invalidateSize();
+                grafiek.tekenGrafiek();
+            }
+        });
+    };
+    new KaartFullScreen(self.selector, enlarge, shrink);
     self.map.on('movestart', self.onMoveStart, self);
     self.map.on('moveend', self.onMoveEnd, self);
-
     self.onRouteVeranderd();
 }
 Kaart.prototype.onRouteVeranderd = function() {
@@ -634,8 +587,10 @@ Kaart.prototype.onGPXLoaded = function(data) {
     this.locaties = data ? gpxparser.parse_gpx(data) : undefined;
     this.locatie = 0;
     if (!this.locaties || this.locaties.length === 0) {
-        this.map.removeLayer(this.locatieLijn);
-        this.map.removeLayer(this.marker);
+        if (this.map.hasLayer(this.locatieLijn))
+            this.map.removeLayer(this.locatieLijn);
+        if (this.map.hasLayer(this.marker))
+            this.map.removeLayer(this.marker);
     } else {
         if (this.locatieLijn) {
             this.map.removeLayer(this.locatieLijn);
@@ -656,13 +611,12 @@ Kaart.prototype.onGPXLoaded = function(data) {
     }
 };
 Kaart.prototype.onTijdVeranderd = function() {
-    // kaart (marker verplaatsen + evt. kaart bewegen)
+// kaart (marker verplaatsen + evt. kaart bewegen)
     if (this.locaties && this.locatie >= 0 && this.locatie < this.locaties.length) {
         this.updateMarker();
         this.beweegKaartAlsNodig();
     }
 };
-
 Kaart.prototype.onMoveStart = function() {
     if (this.ignoreMoveEvent) {
         return;
@@ -697,10 +651,8 @@ Kaart.prototype.pointToSegmentDistance = function(p, p0, p1) {
     var x = p0.x, y = p0.y,
             dx = p1.x - x, dy = p1.y - y,
             dot = dx * dx + dy * dy, t;
-
     if (dot > 0) {
         t = ((p.x - x) * dx + (p.y - y) * dy) / dot;
-
         if (t > 1) {
             x = p1.x;
             y = p1.y;
@@ -712,7 +664,6 @@ Kaart.prototype.pointToSegmentDistance = function(p, p0, p1) {
 
     dx = p.x - x;
     dy = p.y - y;
-
     return {dist: dx * dx + dy * dy, x: x, y: y};
 };
 Kaart.prototype.puntOpLijn = function(evt) {
@@ -733,12 +684,10 @@ Kaart.prototype.puntOpLijn = function(evt) {
     var p = minDistance,
             p0 = points[minIndex],
             p1 = points[minIndex + 1];
-
     var percentageX = (p.x - p0.x) / (p1.x - p0.x);
     var percentageY = (p.y - p0.y) / (p1.y - p0.y);
-
     if (p0.x === p1.x) {
-        // percentageX = NaN
+// percentageX = NaN
         percentageX = percentageY; // laat x niet mee tellen
     }
     if (p0.y === p1.y) {
@@ -748,13 +697,12 @@ Kaart.prototype.puntOpLijn = function(evt) {
             return minIndex;
         }
     }
-    // gemiddelde
+// gemiddelde
     var percentage = (percentageX + percentageY) / 2;
     return minIndex + percentage;
 };
 Kaart.prototype.onRouteClick = function(evt) {
     var self = this;
-
     var index = self.puntOpLijn(evt);
     if (index === null) {
         return;
@@ -765,7 +713,7 @@ Kaart.prototype.onRouteClick = function(evt) {
                 t1 = this.locaties[indexFloor + 1].tijd;
         waarde = t0 + (t1 - t0) * (index % 1); // * kommagetal
     } else {
-        // laatste punt
+// laatste punt
         waarde = this.locaties[indexFloor].tijd;
     }
     var tijd = (waarde - this.locaties[0].tijd) / 1000;
@@ -776,7 +724,7 @@ Kaart.prototype.updateLocatie = function() {
     var tijdHuidig = this.locaties[0].tijd + header.huidigeTijd * 1000;
     var t = this.locaties[this.locatie].tijd;
     if (t < tijdHuidig) {
-        // verder in de tijd
+// verder in de tijd
         for (var i = this.locatie; i + 1 < this.locaties.length; i++) {
             var t0 = this.locaties[i].tijd;
             var t1 = this.locaties[i + 1].tijd;
@@ -787,7 +735,7 @@ Kaart.prototype.updateLocatie = function() {
         }
         this.locatie = this.locaties.length - 1;
     } else if (t > tijdHuidig) {
-        // terug in de tijd
+// terug in de tijd
         for (var i = this.locatie - 1; i >= 0; i--) {
             var t0 = this.locaties[i].tijd;
             var t1 = this.locaties[i + 1].tijd;
@@ -813,7 +761,6 @@ Kaart.prototype.interpolate = function(doelWaarde, waarde0, waarde1, punt0, punt
 
     var lat = punt0.lat + (punt1.lat - punt0.lat) * percentage;
     var lng = punt0.lng + (punt1.lng - punt0.lng) * percentage;
-
     return new L.LatLng(lat, lng);
 };
 Kaart.prototype.updateMarker = function() {
@@ -825,10 +772,8 @@ Kaart.prototype.updateMarker = function() {
             return;
         } else {
             var punt2 = this.locaties[this.locatie + 1];
-
             var beginTijd = this.locaties[0].tijd;
             var huidigeTijdMillis = header.huidigeTijd * 1000;
-
             var locInterpoleerd = this.interpolate(huidigeTijdMillis,
                     punt1.tijd - beginTijd, punt2.tijd - beginTijd, punt1, punt2);
             this.marker.setLatLng(locInterpoleerd);
@@ -846,8 +791,6 @@ Kaart.prototype.beweegKaartAlsNodig = function() {
         }
     }
 };
-
-
 // Verhaal
 function Verhaal(selector, selectorTekst, selectorGezicht) {
     this.verhaal = $(selector);
@@ -858,7 +801,6 @@ function Verhaal(selector, selectorTekst, selectorGezicht) {
     this.fadeDuration = 200;
     this.textFade = 200;
     this.isTextFading = false;
-
     this.onRouteVeranderd();
 }
 Verhaal.prototype.onRouteVeranderd = function() {
@@ -880,7 +822,7 @@ Verhaal.prototype.onTijdVeranderd = function() {
             var verhaal = self.data[i];
             if (header.huidigeTijd >= verhaal.time &&
                     header.huidigeTijd < verhaal.time + self.tijdZichtbaar) {
-                // tekst fade
+// tekst fade
                 if (!self.isTextFading) {
                     if (self.tekst.html() && self.tekst.html() !== verhaal.text) {
                         self.isTextFading = true;
@@ -912,7 +854,7 @@ Verhaal.prototype.onTijdVeranderd = function() {
             }
         }
     }
-    // geen verhaal.
+// geen verhaal.
     self.verhaal.fadeOut(self.fadeDuration, function() {
         self.tekst.html('');
         self.gezicht.attr('src', '');
@@ -930,11 +872,11 @@ Verhaal.prototype.getTekstTijden = function() {
     for (var i = 0; i < this.data.length; i++) {
         var begin = this.data[i].time, eind = begin + this.tijdZichtbaar;
         if (i === 0 || begin - this.data[i - 1].time > this.tijdZichtbaar) {
-            // vorige is langer dan de tijd zichtbaar geleden
+// vorige is langer dan de tijd zichtbaar geleden
             tijden.push(begin);
         }
         if (i + 1 >= this.data.length || this.data[i + 1].time - eind > 0) {
-            // laatste of volgende komt niet binnen 'tijdZichtbaar'
+// laatste of volgende komt niet binnen 'tijdZichtbaar'
             tijden.push(eind);
         }
     }
@@ -942,13 +884,13 @@ Verhaal.prototype.getTekstTijden = function() {
 };
 Verhaal.prototype.setVerhaal = function(verhaal) {
     if (this.huidigVerhaal !== verhaal) {
-        // changed
+// changed
         if (verhaal === null) {
-            // eind
+// eind
             if (video)
                 video.onVerhaalEindigt();
         } else if (this.huidigVerhaal === null) {
-            // start
+// start
             if (video)
                 video.onVerhaalBegint();
         }
@@ -958,8 +900,6 @@ Verhaal.prototype.setVerhaal = function(verhaal) {
 Verhaal.prototype.kijktVerhaal = function() {
     return (typeof this.huidigVerhaal === 'number');
 };
-
-
 header = {
     huidigeTijd: 0,
     route: routes['Amsterdam'],
@@ -980,7 +920,7 @@ header = {
         },
         update: function() {
             var playknop = $('#knop-play-pause');
-            if (video.isPlaying()) {
+            if (video && video.isPlaying()) {
                 playknop.html('&#10073;&#10073; Pause');
             } else {
                 playknop.html('&#9656; Afspelen');
@@ -1006,7 +946,7 @@ header = {
     },
     knopRouteMenu: {
         init: function() {
-            // li (niet de a) krijgt een ul met alle routes beschikbaar (window.routes)
+// li (niet de a) krijgt een ul met alle routes beschikbaar (window.routes)
             var menu = $('<ul></ul>');
             for (var i = 0; i < routes.length; i++) {
                 var routeNaam = routes[i].naam;
@@ -1026,7 +966,6 @@ header = {
             }, function() {
                 menu.css('display', 'none');
             });
-
         },
         updateRouteMenu: function() {
             $('#route-menu ul li.current').removeClass('current');
@@ -1035,7 +974,7 @@ header = {
                 var child = $(children[i]);
                 var childRoute = child.children('a').html();
                 if (childRoute === header.route.naam) {
-                    // add current class
+// add current class
                     child.addClass('current');
                 }
             }
@@ -1048,7 +987,6 @@ header = {
                 this.route = routes[i];
                 this.labelRouteNaam.setRoute(this.route);
                 this.knopRouteMenu.updateRouteMenu();
-
                 if (grafiek)
                     grafiek.onRouteVeranderd();
                 if (verhaal)
@@ -1069,7 +1007,7 @@ header = {
         this.huidigeTijd = tijd;
         // video
         if (video && ignore !== 'video' && !video.onTijdVeranderd()) {
-            // de video kan niet geskipt worden.
+// de video kan niet geskipt worden.
             return;
         }
         if (grafiek)
@@ -1080,8 +1018,6 @@ header = {
             verhaal.onTijdVeranderd();
     }
 };
-
-
 gpxparser = {
     parse_gpx: function(xml) {
         var coords = [];
