@@ -22,9 +22,11 @@ function Route(naam, titel, pad) {
     this.kaart = pad + 'track.gpx';
     this.verhaal = pad + 'verhaal.json';
     this.faceDir = pad + 'faces/';
+    this.poster = pad + 'poster.png';
     this.videosrc = [
-        {type: 'video/mp4', src: pad + 'movie.mp4'},
-        {type: 'video/webm', src: pad + 'movie.webm'}
+       
+        {type: 'video/webm', src: 'http://research.geodan.nl/sites/milieudefensie/' + pad + 'movie.webm'},
+         {type: 'video/mp4', src: 'http://research.geodan.nl/sites/milieudefensie/' + pad + 'movie.mp4'}
     ];
 }
 
@@ -111,7 +113,7 @@ function Grafiek(selector) {
 }
 Grafiek.prototype.getPadding = function(c) {
     var padding = {left: 6, top: 9, right: 6, bottom: 0};
-    if (this.data && this.data.length) {
+  /* SMO if (this.data && this.data.length) {
         c.font = '11px arial';
         c.textAlign = 'right';
         c.textBaseline = 'middle';
@@ -122,7 +124,7 @@ Grafiek.prototype.getPadding = function(c) {
 // we maken gebruik van excanvas. Het heeft geen ondersteuning voor text dus hebben we ook geen padding nodig.
             padding.left += 15;
         }
-    }
+    }*/
     return padding;
 };
 Grafiek.prototype.setTekstTijden = function(tijden) {
@@ -226,16 +228,21 @@ Grafiek.prototype.tekenGrafiek = function() {
         hoofdstrepen: '#333333',
         strepen: 'rgba(128,128,128,0.5)',
         tekstAsBeschrijving: '#000000',
-        shape_stroke: 'rgba(110, 37, 133, 0.5)',
+        shape_stroke: 'rgba(110, 37, 133, 0.8)',
+       // smo shape_stroke: '#e27ea6',//'rgba(128,128,128, 0.8)',
         shape_fill: 'rgba(110, 37, 133, 0.5)',
         tijd_balk: '#00a9e0',
         tekstVerhaal: [
-            '#e37222', '#f3c4a2'
+        //SMO    '#e37222', '#f3c4a2'
+'rgba(255,255,255, 0.8)',        'rgba(110, 37, 133, 0.5)'
         ]
     };
     var graph = $(this.selector);
     graph.attr('width', graph.parent().width());
-    var c = graph.get(0).getContext('2d');
+     if (graph.get(0).getContext) {
+       var c = graph.get(0).getContext('2d');
+    }
+    else return false;
     var hoogteVerhaal = 15;
     var padding = this.getPadding(c);
     var w = graph.width() - padding.left - padding.right;
@@ -266,8 +273,9 @@ Grafiek.prototype.tekenGrafiek = function() {
             c.moveTo(0, y);
             c.lineTo(w, y);
             c.stroke();
+            //SMO: labels
             if (c.fillText) {
-                c.fillText(formatNumber(schaal.minY + schaal.distY * i / aantalStrepen, 3), -3, y);
+              //  c.fillText(formatNumber(schaal.minY + schaal.distY * i / aantalStrepen, 3), -3, y);
             }
         }
 
@@ -324,6 +332,7 @@ Grafiek.prototype.tekenGrafiek = function() {
         }
     }
 // assen
+
     c.beginPath();
     c.moveTo(0, 0);
     c.lineTo(0, h);
@@ -389,7 +398,8 @@ Video.getHtml5_Video = function() {
 };
 Video.prototype.onRouteVeranderd = function() {
     var player = Video.getPlayer();
-    player.src(header.route.videosrc);
+    player.poster(header.route.poster);
+    player.src(header.route.videosrc);    
     // load the new sources
     player.load();
 };
@@ -537,20 +547,21 @@ function Kaart(selector) {
         }
     };
     self.map = L.map(selector).setView([52.15, 5.30], 10);
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
-    }).addTo(self.map);
-
+    var layer = new L.StamenTileLayer("toner-lite");
+    self.map.addLayer(layer);
 
     var parent = $(self.selector).parent();
     var video = $('#div_video');
+    var graph = $('#grafiek');
     var kaartGroot = 600, kaartKlein = 343;
     var videoKlein = 352, videoGroot = 609;
+    var grafiekGroot =  609, grafiekKlein = 352;
 
     var self = this;
 
     var enlarge = function() {
         video.animate({width: videoKlein});
+        graph.animate({width: grafiekKlein});
         parent.animate({width: kaartGroot}, {
             duration: 500, complete: function() {
                 self.map.invalidateSize();
@@ -560,6 +571,7 @@ function Kaart(selector) {
     };
     var shrink = function() {
         video.animate({width: videoGroot});
+        graph.animate({width: grafiekGroot});
         parent.animate({width: kaartKlein}, {
             duration: 500, complete: function() {
                 self.map.invalidateSize();

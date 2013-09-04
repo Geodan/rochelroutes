@@ -1,4 +1,38 @@
 /*
+tmp hack
+*/
+
+#wrapper-grafiek {
+    position: absolute !important;
+    float: right !important;
+    margin-right: 0 !important;
+    margin-left: 348px !important;
+    top: -145px;
+}
+#grafiek {
+    background: rgba(7,40,50,.7) !important;
+    width: 609px ;
+    /*-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(opacity=70)";
+  filter: alpha(opacity = 70);*/
+}
+
+#grafiekinfo {
+    color: white !important;
+    
+    background:  rgba(0,0,0,0.5) !important;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(opacity=50)";
+    filter: alpha(opacity = 50);
+}
+
+#verhaal, #wolk{
+    left: 0px !important;
+    z-index: 10000;
+  
+}
+#verhaal{
+  top: 0px !important;
+  }
+/*
 paars:  #6e2585
 groen:  #13a550
 grijs:  #cccccc
@@ -127,7 +161,9 @@ body {
     left: 50%;
     margin: -4em auto auto -6em;
 }
-
+.vjs-tech {
+    border: none !important;
+}
 
 .leaflet-bar { box-shadow: none; }
 .leaflet-bar, .leaflet-bar a:first-child, .leaflet-bar a:last-child {
@@ -186,7 +222,7 @@ body {
 }
 #wolk {
     position: absolute;
-    right: 35px;
+    /*//SMO:right: 35px;*/
     top: -165px;
 }
 #verhaal-tekst {
