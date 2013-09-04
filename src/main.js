@@ -44,9 +44,40 @@ var formatNumber = function(getal, significanteCijfers) {
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return parts.join(',');
 };
+//Generic function to get parameter from URL
+var GetURLParameter = function (sParam)
+{
+   var sPageURL = window.location.search.substring(1);
+   var sURLVariables = sPageURL.split('&');
+   for (var i = 0; i < sURLVariables.length; i++)
+   {
+     var sParameterName = sURLVariables[i].split('=');
+     if (sParameterName[0] == sParam)
+     {
+        return sParameterName[1];
+     }
+   }
+}
+
+
 var grafiek, video, kaart, verhaal, header, gpxparser;
 $(document).ready(function() {
-    header.setRoute('Amsterdam');
+    //Get optional route from URL 
+    args = window.location.search.substr(1).split(/&/);
+    var routeName = GetURLParameter('route');
+    var routeExists = false;
+    //Check if route exists in routes object
+    routes.forEach(function(route){
+        if (route.naam == routeName){
+            routeExists = true;
+            return;
+        }
+    });
+    if (!routeExists){
+        routeName = routes[0].naam;
+        console.warn('No known route selected, choosing default (' + routeName + ')');
+    }
+    header.setRoute(routeName);
     header.labelRouteNaam.init();
     header.knopPlay.init();
     header.knopSpeed.init();
