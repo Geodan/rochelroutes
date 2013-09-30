@@ -14,6 +14,7 @@ var routes = [
     new Route('Amsterdam', 'Oscar\'s route van Amsterdam', 'amsterdam-1/'),
     new Route('Test', 'Test route van niks eigenlijk....', 'amsterdam-2/')
 ];
+var RN;
 function Route(naam, titel, pad) {
     pad = 'data/' + pad;
     this.naam = naam;
@@ -23,10 +24,15 @@ function Route(naam, titel, pad) {
     this.verhaal = pad + 'verhaal.json';
     this.faceDir = pad + 'faces/';
     this.poster = pad + 'poster.png';
+ /*   this.videosrc = [
+        {type: 'video/mp4', src: 'http://research.geodan.nl/sites/milieudefensie/' + pad + 'movie.mp4'},
+        {type: 'video/webm', src: 'http://research.geodan.nl/sites/milieudefensie/' + pad + 'movie.webm'}
+        
+    ];*/
     this.videosrc = [
-       
-        {type: 'video/webm', src: 'http://research.geodan.nl/sites/milieudefensie/' + pad + 'movie.webm'},
-         {type: 'video/mp4', src: 'http://research.geodan.nl/sites/milieudefensie/' + pad + 'movie.mp4'}
+        {type: 'video/mp4', src: pad + 'movie.mp4'},
+        {type: 'video/webm', src: pad + 'movie.webm'}
+        
     ];
 }
 
@@ -64,20 +70,20 @@ var grafiek, video, kaart, verhaal, header, gpxparser;
 $(document).ready(function() {
     //Get optional route from URL 
     args = window.location.search.substr(1).split(/&/);
-    var routeName = GetURLParameter('route');
+    RN = GetURLParameter('route');
     var routeExists = false;
     //Check if route exists in routes object
-    routes.forEach(function(route){
-        if (route.naam == routeName){
+    $(routes).each(function(){
+        if (this.naam == RN){
             routeExists = true;
             return;
         }
     });
     if (!routeExists){
-        routeName = routes[0].naam;
-        console.warn('No known route selected, choosing default (' + routeName + ')');
+        RN = routes[0].naam;
+        console.warn('No known route selected, choosing default (' + RN + ')');
     }
-    header.setRoute(routeName);
+    header.setRoute(RN);
     header.labelRouteNaam.init();
     header.knopPlay.init();
     header.knopSpeed.init();
@@ -522,48 +528,7 @@ Video.prototype.onTijdVeranderd = function() {
     this.ignoreTimeUpdate = false;
     return this.getCurrentTime() === header.huidigeTijd;
 };
-function KaartFullScreen(selector, onVergroot, onVerklein) {
-    this.onVergroot = onVergroot;
-    this.onVerklein = onVerklein;
-    this.button = $('<a></a>').attr('href', '#').appendTo(
-            $('<div></div>').addClass('leaflet-control-size leaflet-bar leaflet-control')
-            .appendTo($(selector + ' .leaflet-control-container .leaflet-top.leaflet-right'))
-            );
-    var button = this.button.get(0);
-    L.DomEvent
-            .on(button, 'click', L.DomEvent.stopPropagation)
-            .on(button, 'mousedown', L.DomEvent.stopPropagation)
-            .on(button, 'dblclick', L.DomEvent.stopPropagation)
-            .on(button, 'click', L.DomEvent.preventDefault)
-            .on(button, 'click', this.onClick, this);
-    this.setKlein(true);
-}
-KaartFullScreen.prototype.setKlein = function(klein) {
-    this.isKlein = klein;
-    var title, buttonClass, removeClass, html, fn;
-    if (klein) {
-        title = 'Maak groter';
-        buttonClass = 'leaflet-control-enlarge';
-        removeClass = 'leaflet-control-shrink';
-        html = '<img src="' + fullScreenImgURL.enlarge + '" />';
-        fn = this.onVerklein;
-    } else {
-        title = 'Maak kleiner';
-        buttonClass = 'leaflet-control-shrink';
-        removeClass = 'leaflet-control-enlarge';
-        html = '<img src="' + fullScreenImgURL.shrink + '" />';
-        fn = this.onVergroot;
-    }
-    this.button.attr('title', title).html(html);
-    this.button.removeClass(removeClass);
-    this.button.addClass(buttonClass);
-    fn();
-};
-KaartFullScreen.prototype.onClick = function(evt) {
-    this.setKlein(!this.isKlein);
-    L.DomEvent.stopPropagation(evt);
-    L.DomEvent.preventDefault(evt);
-};
+
 // Kaart
 function Kaart(selector) {
     var self = this;
@@ -578,8 +543,9 @@ function Kaart(selector) {
         }
     };
     self.map = L.map(selector).setView([52.15, 5.30], 10);
-    var layer = new L.StamenTileLayer("toner-lite");
-    self.map.addLayer(layer);
+     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
+    }).addTo(this.map);
 
     var parent = $(self.selector).parent();
     var video = $('#div_video');
@@ -609,8 +575,7 @@ function Kaart(selector) {
                 grafiek.tekenGrafiek();
             }
         });
-    };
-    new KaartFullScreen(self.selector, enlarge, shrink);
+    };   
     self.map.on('movestart', self.onMoveStart, self);
     self.map.on('moveend', self.onMoveEnd, self);
     self.onRouteVeranderd();
@@ -860,13 +825,21 @@ Verhaal.prototype.onRouteVeranderd = function() {
 };
 Verhaal.prototype.onTijdVeranderd = function() {
     var self = this;
-    if (this.data) {
+    if (this.data) {    
+        var rout = self.data[0];
+        self.tekst.html(rout.text);
+        var face = rout.face;
+        self.gezicht.attr('src', face ? (header.route.faceDir + face + self.gezichtExtensie) : '');
+        self.gezicht.attr('alt', face ? face : 'gezicht');
+        
         for (var i = self.data.length - 1; i >= 0; i--) {
             var verhaal = self.data[i];
+            
             if (header.huidigeTijd >= verhaal.time &&
                     header.huidigeTijd < verhaal.time + self.tijdZichtbaar) {
 // tekst fade
-                if (!self.isTextFading) {
+
+              /*  if (!self.isTextFading) {
                     if (self.tekst.html() && self.tekst.html() !== verhaal.text) {
                         self.isTextFading = true;
                         self.tekst.fadeOut(self.textFade, function() {
@@ -877,7 +850,7 @@ Verhaal.prototype.onTijdVeranderd = function() {
                     } else {
                         self.tekst.html(verhaal.text);
                     }
-                }
+                }*/
                 var face = '';
                 // trace back last face
                 for (var j = i; j >= 0; j--) {
@@ -886,11 +859,11 @@ Verhaal.prototype.onTijdVeranderd = function() {
                         break;
                     }
                 }
-                self.gezicht.attr('src', face ? (header.route.faceDir + face + self.gezichtExtensie) : '');
+             /*   self.gezicht.attr('src', face ? (header.route.faceDir + face + self.gezichtExtensie) : '');
                 self.gezicht.attr('alt', face ? face : 'gezicht');
                 if (!self.verhaal.is(':visible')) {
                     self.verhaal.fadeIn(self.fadeDuration);
-                }
+                }*/
 
                 self.setVerhaal(verhaal);
                 return;
@@ -898,11 +871,11 @@ Verhaal.prototype.onTijdVeranderd = function() {
         }
     }
 // geen verhaal.
-    self.verhaal.fadeOut(self.fadeDuration, function() {
+    /*self.verhaal.fadeOut(self.fadeDuration, function() {
         self.tekst.html('');
         self.gezicht.attr('src', '');
         self.gezicht.attr('alt', 'gezicht');
-    });
+    });*/
     self.setVerhaal(null);
 };
 // returnt een array waarin staat welke tijdstippen interessant zijn, en wanneer niet meer
@@ -1026,6 +999,8 @@ header = {
     setRoute: function(routeNaam) {
         for (var i = 0; i < routes.length; i++) {
             if (routes[i].naam && routes[i].naam === routeNaam) {
+                RN = routeNaam;
+                console.log(RN);
                 header.setHuidigeTijd(0);
                 this.route = routes[i];
                 this.labelRouteNaam.setRoute(this.route);

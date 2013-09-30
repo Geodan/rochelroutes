@@ -2,8 +2,11 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Rochelroutes</title>
-
+        <title>Rochelroute of gezonde lucht?</title>
+         <meta property="og:url"             content="http://research.geodan.nl/sites/milieudefensie" /> 
+        <meta property="og:title"           content="Rochelroute of gezonde lucht?" /> 
+        <meta property="og:image"           content="http://www.milieudefensie.nl/++resource++md.theme/images/logo_milieudefensie_99x102.gif" /> 
+        <meta property="og:description"     content="In het verkeer word je dagelijks blootgesteld aan ongezonde concentraties luchtvervuiling. Dit is slecht voor je gezondheid. Wij hebben die luchtvervuiling zichtbaar gemaakt door onderweg het ultrafijnstof te meten. Moet je kijken wat een hoge concentraties. Dat ziet er niet gezond uit!"/>
         <link type="text/css" rel="stylesheet" href="src/leaflet/leaflet.css" />
 
         <link type="text/css" rel="stylesheet" href="src/video-js/video-js.min.css">
@@ -13,7 +16,7 @@
         <script type="text/javascript" src="src/video-js/video.dev.js"></script>
         <script type="text/javascript" src="src/leaflet/leaflet-src.js"></script>
         <script type="text/javascript" src="src/main.js"></script>
-        <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.3"></script>
+        
     </head>
     <body>
         <ul id="header">
@@ -33,25 +36,46 @@
                         controls
                        class="video-js vjs-default-skin" data-setup="{}" preload="auto" width="609" height="343">
                 </video>
+                
             </div>
-        </div>
-
-        <div id="footer">
-        
-            <div id="verhaal" style="display: none;">
-                <img id="verhaal-gezicht" src="" alt="gezicht" />
-                <div id="wolk">
-                    <p id="verhaal-tekst"></p>
-                    <img id="verhaal-wolk" src="src/wolk.png" width="263" height="232" alt="tekstwolk" />
-                </div>
-            </div>
-                <div id="wrapper-grafiek">
+            <div id="wrapper-grafiek">
                 <canvas id="grafiek" width="800" height="125"></canvas>
                 <span id="grafiekinfo"></span>
             </div>
-            <div id="oproep">
-                <a href="#" onclick="alert('hier moet nog een link komen!');">Maak een oproep aan je gemeente!</a>
+        </div>
+        <div id="container-text">
+            <div id="text-kaart">Navigeer door een punt op de route of de grafiek te kiezen</div>
+            <div id="text-video">Ultrafijnstofconcentraties in parts/cm3, gemeten met Philips Aerasense tijdens het fietsen</div>
+        </div>
+
+        <div id="footer">
+            <span id="btn-twitter" class="button" onclick="window.open(
+      'https://twitter.com/share?url='+encodeURIComponent(location.href)+'?route='+RN+'&text=Moet je kijken wat je onderweg allemaal inademt als je door de stad fietst!&hashtags=luchtkwaliteit'); 
+    return false;">
+                 <a href="#">&nbsp;</a>
+            </span>
+            <span id="btn-facebook" class="button" onclick="window.open(
+      'https://www.facebook.com/sharer/sharer.php?u=http://www.rochelroutes.nl/?route='+RN);     return false;">
+                <a href="#"   >&nbsp;</a>
+            </span>
+            <span id="btn-meerlezen"  class="button big">
+                <a href="http://www.milieudefensie.nl/luchtkwaliteit">MEER LEZEN</a>
+            </span>
+            <span id="btn-oproep"  class="button big">
+                <a href="http://www.rochelroutes.nl">DOE EEN OPROEP</a>
+            </span>
+            <div id="verhaal">
+                <p id="verhaal-tekst"></p>
+            <span class="gezicht">
+            <img id="verhaal-gezicht" src="" alt="gezicht" />
+            </span>
             </div>
+         
+                
+           
+        </div>
+        <div id="mogelijk">
+            Mede mogelijk gemaakt door <a href="http://www.ivam.uva.nl/"><img src="src/logo/ivam.jpg" height="40px" style="vertical-align: middle" alt="IVAM"/></a> en <a href="http://www.geodan.nl/"><img src="src/logo/Geodan.png" height="40px" style="vertical-align: middle"  alt="Geodan"></a>
         </div>
                 <!--[if lte IE 8]>
             <link type="text/css" rel="stylesheet" href="src/leaflet/leaflet.ie.css" />
