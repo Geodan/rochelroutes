@@ -11,8 +11,9 @@ var fullScreenImgURL = {
     shrink: 'src/shrink-white.png'
 };
 var routes = [
-    new Route('Amsterdam', 'Oscar\'s route van Amsterdam', 'amsterdam-1/'),
-    new Route('Test', 'Test route van niks eigenlijk....', 'amsterdam-2/')
+    new Route('Amsterdam', 'Florien\'s route van Amsterdam', 'ams-weesper/'),
+    new Route('Den Haag', 'Bart\'s route van Den Haag', 'dhg-markt/'),
+    new Route('Rotterdam', 'Ilse\'s route van Rotterdam', 'rdam-sgravendijk/')
 ];
 var RN;
 function Route(naam, titel, pad) {
@@ -81,7 +82,7 @@ $(document).ready(function() {
     });
     if (!routeExists){
         RN = routes[0].naam;
-        console.warn('No known route selected, choosing default (' + RN + ')');
+        //console.warn('No known route selected, choosing default (' + RN + ')');
     }
     header.setRoute(RN);
     header.labelRouteNaam.init();
@@ -1000,7 +1001,7 @@ header = {
         for (var i = 0; i < routes.length; i++) {
             if (routes[i].naam && routes[i].naam === routeNaam) {
                 RN = routeNaam;
-                console.log(RN);
+                //console.log(RN);
                 header.setHuidigeTijd(0);
                 this.route = routes[i];
                 this.labelRouteNaam.setRoute(this.route);
