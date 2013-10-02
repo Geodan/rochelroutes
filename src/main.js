@@ -1,3 +1,14 @@
+var ie = (function(){
+    var undef, v = 3, div = document.createElement('div');
+
+    while (
+        div.innerHTML = '<!--[if gt IE '+(++v)+']><i></i><![endif]-->',
+        div.getElementsByTagName('i')[0]
+    );
+
+    return v> 4 ? v : undef;
+}());
+
 /* -----------------------------------------------------------------------------
  TODO:
  - testen in verschillende browsers (firefox, chrome, IE8 en IE9: functionaliteit en design)
@@ -11,13 +22,14 @@ var fullScreenImgURL = {
     shrink: 'src/shrink-white.png'
 };
 var routes = [
-    new Route('Amsterdam', 'Florien\'s route van Amsterdam', 'ams-weesper/'),
-    new Route('Den Haag', 'Bart\'s route van Den Haag', 'dhg-markt/'),
-    new Route('Rotterdam', 'Ilse\'s route van Rotterdam', 'rdam-sgravendijk/')
+    new Route('Amsterdam', 'Florien\'s route van Amsterdam', 'ams-weesper'),
+    new Route('Den Haag', 'Bart\'s route van Den Haag', 'dhg-markt'),
+    new Route('Rotterdam', 'Ilse\'s route van Rotterdam', 'rdam-sgravendijk')
 ];
 var RN;
 function Route(naam, titel, pad) {
-    pad = 'data/' + pad;
+    this.id = pad;
+    pad = 'data/' + pad + "/";    
     this.naam = naam;
     this.titel = titel;
     this.grafiek = pad + 'meetresultaten.json';
@@ -31,8 +43,9 @@ function Route(naam, titel, pad) {
         
     ];*/
     this.videosrc = [
-        {type: 'video/mp4', src: pad + 'movie.mp4'},
-        {type: 'video/webm', src: pad + 'movie.webm'}
+        {type: 'video/webm', src: 'https://s3-eu-west-1.amazonaws.com/milieudefensie-'+this.id+ '/movie.webm'},
+        {type: 'video/mp4', src: 'https://s3-eu-west-1.amazonaws.com/milieudefensie-'+this.id+ '/movie.mp4'}
+        
         
     ];
 }
@@ -73,18 +86,22 @@ $(document).ready(function() {
     args = window.location.search.substr(1).split(/&/);
     RN = GetURLParameter('route');
     var routeExists = false;
+    var roete;
     //Check if route exists in routes object
     $(routes).each(function(){
-        if (this.naam == RN){
+        if (this.id == RN){
             routeExists = true;
+            roete = this.naam;
             return;
         }
     });
     if (!routeExists){
-        RN = routes[0].naam;
+        RN = routes[0].id;
+        roete = routes[0].naam;
         //console.warn('No known route selected, choosing default (' + RN + ')');
     }
-    header.setRoute(RN);
+    
+    header.setRoute(roete);
     header.labelRouteNaam.init();
     header.knopPlay.init();
     header.knopSpeed.init();
@@ -240,7 +257,7 @@ Grafiek.prototype.waardeNaarTijd = function(waarde) {
     return this.data.length - 1;
 };
 Grafiek.prototype.getSchaal = function() {
-    var xMin = this.laagste('time'), xMax = this.hoogste('time'), yMin = 0, yMax = 50000;
+    var xMin = this.laagste('time'), xMax = this.hoogste('time'), yMin = 0, yMax = this.hoogste('value')*0.5;
     return {
         minX: xMin, maxX: xMax, distX: xMax - xMin,
         minY: yMin, maxY: yMax, distY: yMax - yMin};
@@ -380,18 +397,8 @@ Grafiek.prototype.tekenGrafiek = function() {
     c.stroke();
     // huidigeTijd tekenen
     if (this.data && this.data.length) {
-        var tijd = Math.min(schaal.maxX, Math.max(schaal.minX, header.huidigeTijd));
-        var x = w * (tijd - schaal.minX) / schaal.distX;
-        c.beginPath();
-        c.moveTo(x, 0);
-        c.lineTo(x, h + hoogteVerhaal);
-        c.closePath();
-        c.lineWidth = 3;
-        c.strokeStyle = colors.tijd_balk;
-        c.stroke();
-        // snijpunt
-
-        var index = this.waardeNaarTijd(header.huidigeTijd);
+    c.fillStyle ="#eeeeee";
+     var index = this.waardeNaarTijd(header.huidigeTijd);
         var indexFloor = Math.floor(index);
         var waarde;
         if (indexFloor + 1 < this.data.length) {
@@ -401,6 +408,26 @@ Grafiek.prototype.tekenGrafiek = function() {
 // laatste punt
             waarde = this.data[indexFloor].value;
         }
+    
+        var tijd = Math.min(schaal.maxX, Math.max(schaal.minX, header.huidigeTijd));
+        var x = w * (tijd - schaal.minX) / schaal.distX;
+        c.beginPath();
+        if( h*(waarde - schaal.maxY) / -schaal.distY > 0) {
+        c.arc(x, h*(waarde - schaal.maxY) / -schaal.distY, 7, 0, Math.PI*2, true); 
+        }
+        else {
+        c.moveTo(x, 0);
+        c.lineTo(x, h + hoogteVerhaal);
+        }
+        c.closePath();
+        c.lineWidth = 3;
+        c.strokeStyle = colors.tijd_balk;
+        c.fill();
+        c.stroke();
+        
+        // snijpunt
+
+       
         var y = h * (waarde - schaal.maxY) / -schaal.distY;
         var kader = {left: padding.left, top: padding.top, right: w + padding.left, bottom: h + padding.top};
         this.grafiekInfo.setInformatie(padding.left + x, padding.top + y, Math.round(waarde), kader);
@@ -543,7 +570,7 @@ function Kaart(selector) {
             radius: 7.5
         }
     };
-    self.map = L.map(selector).setView([52.15, 5.30], 10);
+    self.map = L.map(selector).setView([52.15, 5.30], 12);
      L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
     }).addTo(this.map);
@@ -795,7 +822,7 @@ Kaart.prototype.beweegKaartAlsNodig = function() {
         var mapBounds = this.map.getBounds();
         if (!mapBounds.contains(markerPos) && !this.isBezig) {
             this.ignoreMoveEvent = true;
-            this.map.setView(markerPos, Math.max(12, this.map.getZoom()));
+            this.map.setView(markerPos, Math.max(13, this.map.getZoom()));
             this.ignoreMoveEvent = false;
         }
     }
@@ -1000,7 +1027,7 @@ header = {
     setRoute: function(routeNaam) {
         for (var i = 0; i < routes.length; i++) {
             if (routes[i].naam && routes[i].naam === routeNaam) {
-                RN = routeNaam;
+                RN = routes[i].id;
                 //console.log(RN);
                 header.setHuidigeTijd(0);
                 this.route = routes[i];
