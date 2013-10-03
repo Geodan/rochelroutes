@@ -1005,10 +1005,13 @@ header = {
                 menu.append(li);
             }
             var routeMenu = $('#route-menu').append(menu);
-            routeMenu.hover(function() {
-                menu.css('display', 'block');
-            }, function() {
-                menu.css('display', 'none');
+            routeMenu.click(function() {
+                menu.toggle();
+                
+            });
+            routeMenu.on('touchend',function(){
+            $('#div_video').toggle();
+            
             });
         },
         updateRouteMenu: function() {
