@@ -43,8 +43,8 @@ function Route(naam, titel, pad) {
         
     ];*/
     this.videosrc = [
-        {type: 'video/webm', src: 'https://s3-eu-west-1.amazonaws.com/milieudefensie-'+this.id+ '/movie.webm'},
-        {type: 'video/mp4', src: 'https://s3-eu-west-1.amazonaws.com/milieudefensie-'+this.id+ '/movie.mp4'}
+        {type: 'video/webm', src: 'https://d1w20lst7qyzoh.cloudfront.net/'+this.id+ '/movie.webm'},
+        {type: 'video/mp4', src: 'https://d1w20lst7qyzoh.cloudfront.net/'+this.id+ '/movie.mp4'}
         
         
     ];
@@ -129,7 +129,7 @@ GrafiekInfo.prototype.setInformatie = function(x, y, waarde, kader) {
     if (y < kader.top) {
         posY = kader.top + margin;
     } else if (y + h + margin >= kader.bottom) {
-        posY = y - h - margin;
+        posY = kader.bottom - 2*margin;
     } else {
         posY = y + margin;
     }
@@ -257,25 +257,26 @@ Grafiek.prototype.waardeNaarTijd = function(waarde) {
     return this.data.length - 1;
 };
 Grafiek.prototype.getSchaal = function() {
-    var xMin = this.laagste('time'), xMax = this.hoogste('time'), yMin = 0, yMax = this.hoogste('value')*0.5;
-    return {
+    var xMin = this.laagste('time'), xMax = this.hoogste('time'), yMin = 0, yMax = 70000;
+   
+    if (this.data && this.data.length > 0) {
+        var hoogsteWaarde = false, huidigeIndex = Math.round(this.waardeNaarTijd(header.huidigeTijd));
+        for (var i = huidigeIndex - 1; i <= huidigeIndex + 1; i++) {
+            if (i >= 0 && i < this.data.length) {
+                var waarde = this.data[i].value;
+                if (hoogsteWaarde === false || waarde > hoogsteWaarde) {
+                    hoogsteWaarde = waarde;
+                }
+            }
+        }
+        if (hoogsteWaarde !== false && hoogsteWaarde > yMax) {
+            yMax = hoogsteWaarde;
+            yMin = yMax - 70000;
+        }
+    }
+ return {
         minX: xMin, maxX: xMax, distX: xMax - xMin,
         minY: yMin, maxY: yMax, distY: yMax - yMin};
-//    if (this.data && this.data.length > 0) {
-//        var hoogsteWaarde = false, huidigeIndex = Math.round(this.waardeNaarTijd(header.huidigeTijd));
-//        for (var i = huidigeIndex - 10; i <= huidigeIndex + 10; i++) {
-//            if (i >= 0 && i < this.data.length) {
-//                var waarde = this.data[i].value;
-//                if (hoogsteWaarde === false || waarde > hoogsteWaarde) {
-//                    hoogsteWaarde = waarde;
-//                }
-//            }
-//        }
-//        if (hoogsteWaarde !== false && hoogsteWaarde > yMax) {
-//            yMax = hoogsteWaarde;
-//        }
-//    }
-
 };
 // tekenen
 Grafiek.prototype.tekenGrafiek = function() {
@@ -298,7 +299,7 @@ Grafiek.prototype.tekenGrafiek = function() {
        var c = graph.get(0).getContext('2d');
     }
     else return false;
-    var hoogteVerhaal = 15;
+    var hoogteVerhaal = 0;
     var padding = this.getPadding(c);
     var w = graph.width() - padding.left - padding.right;
     var h = graph.height() - padding.top - padding.bottom - hoogteVerhaal;
@@ -412,7 +413,7 @@ Grafiek.prototype.tekenGrafiek = function() {
         var tijd = Math.min(schaal.maxX, Math.max(schaal.minX, header.huidigeTijd));
         var x = w * (tijd - schaal.minX) / schaal.distX;
         c.beginPath();
-        if( h*(waarde - schaal.maxY) / -schaal.distY > 0) {
+        if( (h*(waarde - schaal.maxY) / -schaal.distY > 0 )&& (waarde > schaal.minY)) {
         c.arc(x, h*(waarde - schaal.maxY) / -schaal.distY, 7, 0, Math.PI*2, true); 
         }
         else {
@@ -822,7 +823,7 @@ Kaart.prototype.beweegKaartAlsNodig = function() {
         var mapBounds = this.map.getBounds();
         if (!mapBounds.contains(markerPos) && !this.isBezig) {
             this.ignoreMoveEvent = true;
-            this.map.setView(markerPos, Math.max(13, this.map.getZoom()));
+            this.map.setView(markerPos, Math.max(14, this.map.getZoom()));
             this.ignoreMoveEvent = false;
         }
     }
