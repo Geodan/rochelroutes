@@ -22,9 +22,9 @@ var fullScreenImgURL = {
     shrink: 'src/shrink-white.png'
 };
 var routes = [
-    new Route('Amsterdam', 'Florien\'s route van Amsterdam', 'ams-weesper'),
-    new Route('Den Haag', 'Bart\'s route van Den Haag', 'dhg-markt'),
-    new Route('Rotterdam', 'Ilse\'s route van Rotterdam', 'rdam-sgravendijk')
+   new Route('Amsterdam - Weesperstraat','Florien\'s route van Amsterdam','ams-weesper'),
+   new Route('Den Haag - Haagse Markt','Bart\'s route van Den Haag','dhg-markt'),
+   new Route('Rotterdam - \'s Gravendijkwal','Ilse\'s route van Rotterdam','rdam-sgravendijk')
 ];
 var RN;
 function Route(naam, titel, pad) {
