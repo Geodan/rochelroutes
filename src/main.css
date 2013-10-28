@@ -53,7 +53,7 @@ body {
 
 #k-r { width: 348px;}
 /* last menu item */
-#header li#route-menu { float: right; }
+#header li#route-menu { float: right; width: 270px; text-align: right;}
 #header li#route-menu a { border-width: 0 0 0 1px; }
 /* sub menu */
 #header ul {

@@ -23,7 +23,16 @@ var fullScreenImgURL = {
 };
 var routes = [
    new Route('Amsterdam - Weesperstraat','Florien\'s route van Amsterdam','ams-weesper'),
+   new Route('Amsterdam - Piet Heinkade','Kees\' route van Amsterdam','ams-piethein'),
+   new Route('Amsterdam - Wibautstraat','Bert\'s route van Amsterdam','ams-wibaut'),
    new Route('Den Haag - Haagse Markt','Bart\'s route van Den Haag','dhg-markt'),
+   new Route('Den Haag - Javastraat','Ad\'s route van Den Haag','dhg-java'),
+   new Route('Den Haag - Kennedylaan','Daphne\'s route van Den Haag','dhg-kennedy'),
+   new Route('Eindhoven - Mauritsstraat','Ank\'s route van Eindhoven','ehv-maurits'),
+   new Route('Haarlem - Kennemerplein','Jaime\'s route van Haarlem','dhg-java'),
+   new Route('Maastricht - Dorpsstraat','Nannie\'s route van Maastricht','mst-dorps'),
+   new Route('Rotterdam - Erasmusbrug','Nancy\'s route van Rotterdam','rdam-erasmus'),
+   new Route('Rotterdam - Stadhouderweg','Liesbeth\'s route van Rotterdam','rdam-stadhouder'),
    new Route('Rotterdam - \'s Gravendijkwal','Ilse\'s route van Rotterdam','rdam-sgravendijk')
 ];
 var RN;
